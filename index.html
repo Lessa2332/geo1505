@@ -27,7 +27,7 @@
             flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; position: relative;
         }
         #animal { 
-            font-size: 100px; /* Оптимальний початковий розмір */
+            font-size: 100px; 
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.3s; 
             cursor: pointer; display: inline-block; 
         }
@@ -52,7 +52,7 @@
 
         /* Кнопки дій (Фінал та Перезапуск) */
         .game-btn {
-            display: none; border: none; padding: 18px 35px; font-size: 22px; font-weight: bold; border-radius: 50px; cursor: pointer; margin-bottom: 30px; animation: pulse 1.5s infinite;
+            display: none; border: none; padding: 18px 35px; font-size: 22px; font-weight: bold; border-radius: 50px; cursor: pointer; margin-bottom: 30px; animation: pulse 1.5s infinite; z-index: 20;
         }
         #finish-btn { background: #ff007f; color: white; box-shadow: 0 0 20px #ff007f; }
         #restart-btn { background: #00adb5; color: white; box-shadow: 0 0 20px #00adb5; }
@@ -237,7 +237,7 @@
                             animalDiv.innerText = lvl.happyEmoji;
                             animalDiv.classList.add('eating');
                             item.style.display = 'none';
-                            currentScale += 0.25; // Оптимальне помірне збільшення
+                            currentScale += 0.25; 
 
                             setTimeout(() => {
                                 animalDiv.innerText = lvl.character;
@@ -269,11 +269,13 @@
                     setTimeout(loadLevel, 1000);
                 } else {
                     document.getElementById('foodContainer').style.display = 'none';
-                    // Трохи зменшив фінальні емодзі (було 3, тепер 2 і оптимального масштабу)
                     const animalDiv = document.getElementById('animal');
+                    animalDiv.innerText = "Rex & Cat"; 
                     animalDiv.innerText = "🦖🐱"; 
                     animalDiv.style.transform = "scale(1.2)";
-                    document.getElementById('finish-btn').style.style.display = 'block';
+                    
+                    // Виправлено відображення кнопки фіналу!
+                    document.getElementById('finish-btn').style.display = 'block';
                 }
             }
         }
@@ -291,17 +293,11 @@
             }, 120);
         }
 
-        // --- ФУНКЦІЯ ПЕРЕЗАПУСКУ ГРИ ЗНОУ ---
         function resetGame() {
-            // Ховаємо елементи фіналу
             document.getElementById('restart-btn').style.display = 'none';
             document.getElementById('win-text').style.display = 'none';
             document.getElementById('game-screen').classList.remove('active');
-            
-            // Скидаємо змінні рівнів
             currentLevel = 0;
-            
-            // Показуємо екран із сіткою та запускаємо її фізику заново
             document.getElementById('canvas-container').style.display = 'block';
             initPhysics();
         }
