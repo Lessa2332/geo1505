@@ -27,16 +27,16 @@
             flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; position: relative;
         }
         #animal { 
-            font-size: 110px; /* початковий розмір трохи менший, щоб було куди рости */
+            font-size: 100px; /* Оптимальний початковий розмір */
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.3s; 
             cursor: pointer; display: inline-block; 
         }
-        #animal.eating { transform: scale(1.4) rotate(5deg); }
+        #animal.eating { transform: scale(1.3) rotate(5deg); }
         #animal.wrong { animation: shake 0.4s ease; }
 
         /* Зона ротика для попадання */
         .target-mouth {
-            position: absolute; width: 140px; height: 140px; top: 50%; left: 50%; transform: translate(-50%, -50%); border-radius: 50%;
+            position: absolute; width: 130px; height: 130px; top: 50%; left: 50%; transform: translate(-50%, -50%); border-radius: 50%;
         }
 
         /* Нижня панель з їжею */
@@ -50,10 +50,14 @@
         }
         .food-item:active { cursor: grabbing; transform: scale(1.2); }
 
-        /* Кнопка Фіналу */
-        #finish-btn {
-            display: none; background: #ff007f; color: white; border: none; padding: 20px 40px; font-size: 24px; font-weight: bold; border-radius: 50px; cursor: pointer; box-shadow: 0 0 20px #ff007f; margin-bottom: 30px; animation: pulse 1.5s infinite;
+        /* Кнопки дій (Фінал та Перезапуск) */
+        .game-btn {
+            display: none; border: none; padding: 18px 35px; font-size: 22px; font-weight: bold; border-radius: 50px; cursor: pointer; margin-bottom: 30px; animation: pulse 1.5s infinite;
         }
+        #finish-btn { background: #ff007f; color: white; box-shadow: 0 0 20px #ff007f; }
+        #restart-btn { background: #00adb5; color: white; box-shadow: 0 0 20px #00adb5; }
+
+        #win-text { font-size: 26px; margin-top: 15px; color: #66fcf1; font-weight: bold; text-shadow: 0 0 10px #66fcf1; text-align: center; display: none; }
 
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
@@ -61,9 +65,9 @@
             75% { transform: translateX(15px) rotate(5deg); }
         }
         @keyframes pulse {
-            0% { transform: scale(1); box-shadow: 0 0 15px #ff007f; }
-            50% { transform: scale(1.08); box-shadow: 0 0 30px #ff007f; }
-            100% { transform: scale(1); box-shadow: 0 0 15px #ff007f; }
+            0% { transform: scale(1); }
+            50% { transform: scale(1.06); }
+            100% { transform: scale(1); }
         }
     </style>
 </head>
@@ -78,12 +82,13 @@
         <div class="character-zone">
             <div id="animal">🦖</div>
             <div class="target-mouth" id="mouthTarget"></div>
+            <div id="win-text">ТИ НАЙКРАЩИЙ! 🏆</div>
         </div>
 
-        <button id="finish-btn" onclick="finalCelebration()">ЗАВЕРШИТИ ГРУ 🏁</button>
+        <button id="finish-btn" class="game-btn" onclick="finalCelebration()">ЗАВЕРШИТИ ГРУ 🏁</button>
+        <button id="restart-btn" class="game-btn" onclick="resetGame()">ГРАТИ ЗНОВУ 🔄</button>
 
-        <div class="food-bar" id="foodContainer">
-            </div>
+        <div class="food-bar" id="foodContainer"></div>
     </div>
 
     <script>
@@ -103,41 +108,24 @@
         const soundSlice = () => playTone(600, 'sine', 0.04);
         const soundDrag = () => playTone(300, 'triangle', 0.08);
         const soundYum = () => { playTone(450, 'square', 0.08); setTimeout(() => playTone(600, 'square', 0.12), 80); };
-        const soundWrong = () => { playTone(220, 'sawtooth', 0.25); }; // Низький звук помилки
+        const soundWrong = () => playTone(220, 'sawtooth', 0.25);
         const soundWin = () => { playTone(523, 'sine', 0.15); setTimeout(() => playTone(659, 'sine', 0.15), 120); setTimeout(() => playTone(784, 'sine', 0.3), 240); };
 
         // --- ДАНІ РІВНІВ ---
         const levels = [
-            {
-                character: "🦖",
-                happyEmoji: "😋",
-                wrongEmoji: "🙅‍♂️",
-                items: [
-                    { emoji: "🌿", edible: true },
-                    { emoji: "🥩", edible: true },
-                    { emoji: "👟", edible: false } // Кросівок — неїстівний!
-                ]
-            },
-            {
-                character: "🐱",
-                happyEmoji: "😻",
-                wrongEmoji: "🙀",
-                items: [
-                    { emoji: "🐟", edible: true },
-                    { emoji: "🥛", edible: true },
-                    { emoji: "🎈", edible: false } // Кулька — неїстівна!
-                ]
-            }
+            { character: "🦖", happyEmoji: "😋", wrongEmoji: "🙅‍♂️", items: [{ emoji: "🌿", edible: true }, { emoji: "🥩", edible: true }, { emoji: "👟", edible: false }] },
+            { character: "🐱", happyEmoji: "😻", wrongEmoji: "🙀", items: [{ emoji: "🐟", edible: true }, { emoji: "🥛", edible: true }, { emoji: "🎈", edible: false }] }
         ];
         
         let currentLevel = 0;
-        let currentScale = 1.0; // Поточний коефіцієнт збільшення тваринки
+        let currentScale = 1.0;
 
-        // --- ФІЗИКА СІТКИ (БЕЗ ЗМІН) ---
+        // --- ФІЗИКА СІТКИ ---
         const canvas = document.getElementById('clothCanvas'); const ctx = canvas.getContext('2d');
         let points = [], links = [], mouse = { x:0, y:0, px:0, py:0, down:false }, cutCount = 0, passed = false;
         function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
         window.addEventListener('resize', resizeCanvas);
+        
         class Point {
             constructor(x, y) { this.x = x; this.y = y; this.oldx = x; this.oldy = y; this.pinned = false; }
             update() { if (this.pinned) return; let vx = (this.x - this.oldx) * 0.98, vy = (this.y - this.oldy) * 0.98; this.oldx = this.x; this.oldy = this.y; this.x += vx; this.y += vy + 0.15; }
@@ -146,13 +134,17 @@
             constructor(p1, p2, len) { this.p1 = p1; this.p2 = p2; this.length = len; this.broken = false; }
             resolve() { if (this.broken) return; let dx = this.p2.x - this.p1.x, dy = this.p2.y - this.p1.y, dist = Math.sqrt(dx*dx + dy*dy), diff = this.length - dist, percent = (diff / dist) * 0.5; if (!this.p1.pinned) { this.p1.x -= dx * percent; this.p1.y -= dy * percent; } if (!this.p2.pinned) { this.p2.x += dx * percent; this.p2.y += dy * percent; } }
         }
+        
         function initPhysics() {
-            resizeCanvas(); const spacing = 30; const cols = Math.floor(canvas.width / spacing) - 2, rows = 14; const startX = (canvas.width - cols * spacing) / 2, startY = 80;
+            resizeCanvas(); points = []; links = []; cutCount = 0; passed = false;
+            const spacing = 30; const cols = Math.floor(canvas.width / spacing) - 2, rows = 14; const startX = (canvas.width - cols * spacing) / 2, startY = 80;
             for (let y = 0; y <= rows; y++) { for (let x = 0; x <= cols; x++) { let p = new Point(startX + x * spacing, startY + y * spacing); if (y === 0) p.pinned = true; points.push(p); } }
             for (let y = 0; y <= rows; y++) { for (let x = 0; x <= cols; x++) { if (x < cols) links.push(new Link(points[y * (cols + 1) + x], points[y * (cols + 1) + x + 1], spacing)); if (y < rows) links.push(new Link(points[y * (cols + 1) + x], points[(y + 1) * (cols + 1) + x], spacing)); } }
             animate();
         }
+        
         function checkIntersection(p1, p2, p3, p4) { let det = (p2.x - p1.x) * (p4.y - p3.y) - (p4.x - p3.x) * (p2.y - p1.y); if (det === 0) return false; let lambda = ((p4.y - p3.y) * (p4.x - p1.x) + (p3.x - p4.x) * (p4.y - p1.y)) / det, gamma = ((p1.y - p2.y) * (p4.x - p1.x) + (p2.x - p1.x) * (p4.y - p1.y)) / det; return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1); }
+        
         function animate() {
             if (passed) return; ctx.clearRect(0, 0, canvas.width, canvas.height); points.forEach(p => p.update()); let slashed = false;
             for (let i = 0; i < 5; i++) { links.forEach(l => { if (!l.broken) { l.resolve(); if (mouse.down && checkIntersection(l.p1, l.p2, {x: mouse.px, y: mouse.py}, {x: mouse.x, y: mouse.y})) { l.broken = true; cutCount++; slashed = true; } } }); }
@@ -161,6 +153,7 @@
             mouse.px = mouse.x; mouse.py = mouse.y;
             if (cutCount > 50) { passed = true; setTimeout(showGame, 300); } else { requestAnimationFrame(animate); }
         }
+        
         function handleMove(e) { let clientX = e.touches ? e.touches[0].clientX : e.clientX, clientY = e.touches ? e.touches[0].clientY : e.clientY; mouse.x = clientX; mouse.y = clientY; }
         window.addEventListener('mousedown', (e) => { audioCtx.resume(); mouse.down = true; handleMove(e); mouse.px = mouse.x; mouse.py = mouse.y; });
         window.addEventListener('mousemove', handleMove); window.addEventListener('mouseup', () => mouse.down = false);
@@ -175,19 +168,18 @@
             loadLevel();
         }
 
-        // --- ЛОГІКА ГРИ ТА ГОДУВАННЯ ---
+        // --- КЕРУВАННЯ ГОДУВАННЯМ ---
         function loadLevel() {
             const lvl = levels[currentLevel];
             const animalDiv = document.getElementById('animal');
             const container = document.getElementById('foodContainer');
             
-            // Скидаємо базовий масштаб тваринки на старті рівня
             currentScale = 1.0;
             animalDiv.innerText = lvl.character;
             animalDiv.style.transform = `scale(${currentScale})`;
-            container.innerHTML = ''; // Очищуємо панель їжі
+            container.style.display = 'flex';
+            container.innerHTML = '';
 
-            // Генеруємо предмети їжі
             lvl.items.forEach((item, index) => {
                 const foodHtml = `<div class="food-item" id="food-${index}" data-edible="${item.edible}">${item.emoji}</div>`;
                 container.insertAdjacentHTML('beforeend', foodHtml);
@@ -236,20 +228,16 @@
 
                     const itemRect = item.getBoundingClientRect();
                     const mouthRect = mouthTarget.getBoundingClientRect();
-
                     const isOverMouth = !(itemRect.right < mouthRect.left || itemRect.left > mouthRect.right || 
                                           itemRect.bottom < mouthRect.top || itemRect.top > mouthRect.bottom);
 
                     if (isOverMouth) {
                         if (isEdible) {
-                            // Правильно: їстівне!
                             soundYum();
                             animalDiv.innerText = lvl.happyEmoji;
                             animalDiv.classList.add('eating');
                             item.style.display = 'none';
-
-                            // Тваринка збільшується! Додаємо +0.3 до її масштабу
-                            currentScale += 0.35;
+                            currentScale += 0.25; // Оптимальне помірне збільшення
 
                             setTimeout(() => {
                                 animalDiv.innerText = lvl.character;
@@ -258,61 +246,64 @@
                                 checkLevelProgress();
                             }, 700);
                         } else {
-                            // Помилка: НЕЇСТІВНЕ!
                             soundWrong();
                             animalDiv.innerText = lvl.wrongEmoji;
                             animalDiv.classList.add('wrong');
-                            
-                            // Повертаємо предмет назад на панель
                             currentX = 0; currentY = 0;
                             item.style.transform = `translate(0px, 0px)`;
-
-                            setTimeout(() => {
-                                animalDiv.innerText = lvl.character;
-                                animalDiv.classList.remove('wrong');
-                            }, 800);
+                            setTimeout(() => { animalDiv.innerText = lvl.character; animalDiv.classList.remove('wrong'); }, 800);
                         }
                     } else {
-                        // Якщо просто кинув посеред екрану
-                        currentX = 0; currentY = 0;
-                        item.style.transform = `translate(0px, 0px)`;
+                        currentX = 0; currentY = 0; item.style.transform = `translate(0px, 0px)`;
                     }
                 }
             });
         }
 
         function checkLevelProgress() {
-            // Перевіряємо, чи залишилися ще їстівні предмети на екрані
             const remainingEdible = Array.from(document.querySelectorAll('.food-item')).filter(i => i.style.display !== 'none' && i.getAttribute('data-edible') === 'true');
-            
             if (remainingEdible.length === 0) {
                 soundWin();
                 currentLevel++;
-
                 if (currentLevel < levels.length) {
-                    // Перехід на наступну тваринку (Котика)
                     setTimeout(loadLevel, 1000);
                 } else {
-                    // Всі тваринки нагодовані! Показуємо кнопку фіналу
                     document.getElementById('foodContainer').style.display = 'none';
-                    document.getElementById('animal').innerText = "👑🦖🐱🎉";
-                    document.getElementById('finish-btn').style.display = 'block';
+                    // Трохи зменшив фінальні емодзі (було 3, тепер 2 і оптимального масштабу)
+                    const animalDiv = document.getElementById('animal');
+                    animalDiv.innerText = "🦖🐱"; 
+                    animalDiv.style.transform = "scale(1.2)";
+                    document.getElementById('finish-btn').style.style.display = 'block';
                 }
             }
         }
 
-        // Дія при натисканні на кнопку "Завершити гру"
         function finalCelebration() {
             document.getElementById('finish-btn').style.display = 'none';
-            document.querySelector('.character-zone').insertAdjacentHTML('beforeend', '<div style="font-size:32px; margin-top:20px; color:#66fcf1; font-weight:bold; text-shadow: 0 0 10px #66fcf1; text-align:center;">ТИ НАЙКРАЩИЙ СУПЕРГЕРОЙ! 🏆</div>');
+            document.getElementById('win-text').style.display = 'block';
+            document.getElementById('restart-btn').style.display = 'block';
             
-            // Нескінченний міні-салют зі звуків для малюка
             let count = 0;
             let interval = setInterval(() => {
                 playTone(400 + Math.random() * 600, 'sine', 0.15);
                 count++;
-                if (count > 15) clearInterval(interval);
-            }, 150);
+                if (count > 12) clearInterval(interval);
+            }, 120);
+        }
+
+        // --- ФУНКЦІЯ ПЕРЕЗАПУСКУ ГРИ ЗНОУ ---
+        function resetGame() {
+            // Ховаємо елементи фіналу
+            document.getElementById('restart-btn').style.display = 'none';
+            document.getElementById('win-text').style.display = 'none';
+            document.getElementById('game-screen').classList.remove('active');
+            
+            // Скидаємо змінні рівнів
+            currentLevel = 0;
+            
+            // Показуємо екран із сіткою та запускаємо її фізику заново
+            document.getElementById('canvas-container').style.display = 'block';
+            initPhysics();
         }
     </script>
 </body>
