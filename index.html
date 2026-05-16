@@ -60,6 +60,22 @@
 
         #win-text { font-size: 28px; margin-top: 15px; color: #66fcf1; font-weight: bold; text-shadow: 0 0 10px #66fcf1; text-align: center; display: none; }
 
+        /* ЕКРАН 3: ІМЕРСИВНИЙ ЕМБІЄНТ (ПІСОЧНИЙ ГОДИННИК) */
+        #ambient-screen {
+            position: absolute; width: 100%; height: 100%; top: 0; left: 0;
+            z-index: -1; opacity: 0; background: #050510;
+            transition: opacity 2s ease; display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+        }
+        #ambient-screen.active { z-index: 100; opacity: 1; }
+        #ambient-canvas { position: absolute; width: 100%; height: 100%; top: 0; left: 0; }
+        .ambient-title {
+            position: absolute; top: 15%; font-size: 32px; font-weight: bold;
+            color: #a5dff9; text-shadow: 0 0 15px rgba(165,223,249,0.6);
+            text-align: center; width: 80%; pointer-events: none; z-index: 101;
+            font-family: 'Comic Sans MS', sans-serif;
+        }
+
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             25% { transform: translateX(-15px) rotate(-5deg); }
@@ -86,7 +102,6 @@
             <div id="win-text">ТИ НАЙКРАЩИЙ! 🏆</div>
         </div>
 
-        <!-- Кнопки керування потоком гри -->
         <button id="next-btn" class="game-btn" onclick="goToNextLevel()">ДАЛІ ➡️</button>
         <button id="finish-btn" class="game-btn" onclick="finalCelebration()">ЗАВЕРШИТИ ГРУ 🏁</button>
         <button id="restart-btn" class="game-btn" onclick="resetGame()">ГРАТИ ЗНОВУ 🔄</button>
@@ -94,9 +109,24 @@
         <div class="food-bar" id="foodContainer"></div>
     </div>
 
+    <!-- Новий імерсивний екран -->
+    <div id="ambient-screen">
+        <div class="ambient-title">Оченята відпочивають... 🌊✨</div>
+        <canvas id="ambient-canvas"></canvas>
+    </div>
+
     <script>
+        // --- НАЛАШТУВАННЯ ТАЙМЕРУ ПАУЗИ ---
+        const TEST_MODE = false; // Змініть на true, щоб пауза увімкнулася вже через 10 секунд для тесту!
+        const GAME_PLAY_TIME = TEST_MODE ? 10000 : 4 * 60 * 1000; // 4 хвилини гри
+        const RELAX_TIME = 60000; // 1 хвилина відпочинку
+        let gameTimer = null;
+        let ambientAnimationId = null;
+        let ambientAudioNodes = []; // Для збереження звукових генераторів
+
         // --- СИНТЕЗАТОР ЗВУКІВ ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
         function playTone(freq, type, duration) {
             try {
                 let osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
@@ -115,18 +145,62 @@
         const soundWin = () => { playTone(523, 'sine', 0.15); setTimeout(() => playTone(659, 'sine', 0.15), 120); setTimeout(() => playTone(784, 'sine', 0.3), 240); };
         const soundLevelUp = () => { playTone(587, 'sine', 0.1); setTimeout(() => playTone(698, 'sine', 0.1), 100); setTimeout(() => playTone(880, 'sine', 0.2), 200); };
 
-        // --- ДАНІ РІВНІВ (10 ТВАРИН, ПО 5 СМАКОЛИКІВ) ---
+        // Глибокий космічний ембієнт (генеративний пад)
+        function startAmbientSound() {
+            try {
+                ambientAudioNodes = [];
+                const frequencies = [110, 165, 220, 330]; // Гармонійні низькі частоти (Ля-мінор)
+                
+                frequencies.forEach(freq => {
+                    let osc = audioCtx.createOscillator();
+                    let gain = audioCtx.createGain();
+                    let lfo = audioCtx.createOscillator();
+                    let lfoGain = audioCtx.createGain();
+
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+                    // Плавання гучності (ефект хвиль)
+                    lfo.type = 'sine';
+                    lfo.frequency.setValueAtTime(0.2 + Math.random() * 0.3, audioCtx.currentTime);
+                    lfoGain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+
+                    gain.gain.setValueAtTime(0.02, audioCtx.currentTime);
+
+                    lfo.connect(lfoGain);
+                    lfoGain.connect(gain.gain);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+
+                    osc.start();
+                    lfo.start();
+
+                    ambientAudioNodes.push({ osc, lfo, gain });
+                });
+            } catch(e){}
+        }
+
+        function stopAmbientSound() {
+            ambientAudioNodes.forEach(node => {
+                try {
+                    // Плавно глушимо звук за 2 секунди
+                    node.gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 2);
+                    setTimeout(() => {
+                        node.osc.stop();
+                        node.lfo.stop();
+                    }, 2000);
+                } catch(e){}
+            });
+            ambientAudioNodes = [];
+        }
+
+        // --- ДАНІ РІВНІВ ---
         const levels = [
             { character: "🦖", happyEmoji: "😋", wrongEmoji: "🙅‍♂️", items: [{ emoji: "🌿", edible: true }, { emoji: "🥩", edible: true }, { emoji: "🍎", edible: true }, { emoji: "🍌", edible: true }, { emoji: "👟", edible: false }] },
             { character: "🐱", happyEmoji: "😻", wrongEmoji: "🙀", items: [{ emoji: "🐟", edible: true }, { emoji: "🥛", edible: true }, { emoji: "🐭", edible: true }, { emoji: "🥩", edible: true }, { emoji: "🎈", edible: false }] },
-            { character: "🐶", happyEmoji: "🐕", wrongEmoji: "😾", items: [{ emoji: "🍖", edible: true }, { emoji: "🥩", edible: true }, { emoji: "🧀", edible: true }, { emoji: "Корм", edible: true }, { emoji: "🧦", edible: false }] },
+            { character: "🐶", happyEmoji: "🐕", wrongEmoji: "😾", items: [{ emoji: "🍖", edible: true }, { emoji: "🥩", edible: true }, { emoji: "🧀", edible: true }, { emoji: "🥬", edible: false }, { emoji: "🧦", edible: false }] },
             { character: "🐵", happyEmoji: "🐒", wrongEmoji: "🙈", items: [{ emoji: "🍌", edible: true }, { emoji: "🍍", edible: true }, { emoji: "🥥", edible: true }, { emoji: "🍎", edible: true }, { emoji: "🔋", edible: false }] },
-            { character: "🐭", happyEmoji: "🐹", wrongEmoji: "🐁", items: [{ emoji: "🧀", edible: true }, { emoji: "🌾", edible: true }, { emoji: "🥜", edible: true }, { emoji: "🌽", edible: true }, { emoji: "🧱", edible: false }] },
-            { character: "🐸", happyEmoji: "🐸", wrongEmoji: "😝", items: [{ emoji: "🪰", edible: true }, { emoji: "🦟", edible: true }, { emoji: "🐛", edible: true }, { emoji: "🪲", edible: true }, { emoji: "🪙", edible: false }] },
-            { character: "🐝", happyEmoji: "🌻", wrongEmoji: "🥴", items: [{ emoji: "🌸", edible: true }, { emoji: "🌹", edible: true }, { emoji: "🌷", edible: true }, { emoji: "🍯", edible: true }, { emoji: "🧼", edible: false }] },
-            { character: "🐰", happyEmoji: "🐇", wrongEmoji: "🐇", items: [{ emoji: "🥕", edible: true }, { emoji: "🥬", edible: true }, { emoji: "🍏", edible: true }, { emoji: "🍓", edible: true }, { emoji: "🔑", edible: false }] },
-            { character: "🐻", happyEmoji: "🐻", wrongEmoji: "🐻", items: [{ emoji: "🍯", edible: true }, { emoji: "🐟", edible: true }, { emoji: "🍒", edible: true }, { emoji: "🍇", edible: true }, { emoji: "🪓", edible: false }] },
-            { character: "🐷", happyEmoji: "🐖", wrongEmoji: "🐽", items: [{ emoji: "🍎", edible: true }, { emoji: "🌽", edible: true }, { emoji: "🍉", edible: true }, { emoji: "🥔", edible: true }, { emoji: "👟", edible: false }] }
+            { character: "🐭", happyEmoji: "🐹", wrongEmoji: "🐁", items: [{ emoji: "🧀", edible: true }, { emoji: "🌾", edible: true }, { emoji: "🥜", edible: true }, { emoji: "🌽", edible: true }, { emoji: "🧱", edible: false }] }
         ];
         
         let currentLevel = 0;
@@ -178,6 +252,109 @@
             document.getElementById('canvas-container').style.display = 'none';
             document.getElementById('game-screen').classList.add('active');
             loadLevel();
+            startGameplayTimer(); // Запуск відліку 4 хвилин
+        }
+
+        // --- ТАЙМЕРИ ТА КЕРУВАННЯ СТАНАМИ ГРИ ---
+        function startGameplayTimer() {
+            clearTimeout(gameTimer);
+            gameTimer = setTimeout(triggerAmbientRelax, GAME_PLAY_TIME);
+        }
+
+        // --- ЕФЕКТ ПІСОЧНОГО ГОДИННИКА (ЕМБІЄНТ) ---
+        function triggerAmbientRelax() {
+            const ambScreen = document.getElementById('ambient-screen');
+            ambScreen.classList.add('active');
+            
+            startAmbientSound();
+            initAmbientSandSimulation();
+
+            // Повернення до гри через 1 хвилину
+            setTimeout(() => {
+                stopAmbientSound();
+                cancelAnimationFrame(ambientAnimationId);
+                ambScreen.classList.remove('active');
+                startGameplayTimer(); // Скидаємо і запускаємо таймер гри знову
+            }, RELAX_TIME);
+        }
+
+        function initAmbientSandSimulation() {
+            const ambCanvas = document.getElementById('ambient-canvas');
+            const ambCtx = ambCanvas.getContext('2d');
+            
+            ambCanvas.width = window.innerWidth;
+            ambCanvas.height = window.innerHeight;
+
+            let grains = [];
+            const colors = ['#45f3ff', '#ff007f', '#ffbd59', '#4caf50', '#8a2be2'];
+            
+            // Рівень заповнення «піском» знизу
+            let floorY = ambCanvas.height;
+
+            function drawSand() {
+                // Малюємо напівпрозоре тло, щоб створювати красивий шлейф за піском
+                ambCtx.fillStyle = 'rgba(5, 5, 16, 0.2)';
+                ambCtx.fillRect(0, 0, ambCanvas.width, ambCanvas.height);
+
+                // Поступово піднімаємо рівень "стаціонарного" піску на дні
+                if (floorY > ambCanvas.height * 0.2) {
+                    floorY -= 0.15; 
+                }
+
+                // Генеруємо нові піщинки зверху по центру (як у годиннику)
+                if (grains.length < 400) {
+                    for(let i = 0; i < 3; i++) {
+                        grains.push({
+                            x: ambCanvas.width / 2 + (Math.random() * 30 - 15),
+                            y: 0,
+                            vx: Math.random() * 2 - 1,
+                            vy: 2 + Math.random() * 4,
+                            radius: 3 + Math.random() * 5,
+                            color: colors[Math.floor(Math.random() * colors.length)]
+                        });
+                    }
+                }
+
+                // Оновлюємо та малюємо піщинки в польоті
+                for (let i = grains.length - 1; i >= 0; i--) {
+                    let g = grains[i];
+                    g.y += g.vy;
+                    g.x += g.vx;
+
+                    // Малюємо піщинку
+                    ambCtx.beginPath();
+                    ambCtx.arc(g.x, g.y, g.radius, 0, Math.PI * 2);
+                    ambCtx.fillStyle = g.color;
+                    // Додаємо легке світіння кожній піщинці
+                    ambCtx.shadowBlur = 10;
+                    ambCtx.shadowColor = g.color;
+                    ambCtx.fill();
+
+                    // Якщо піщинка долетіла до поточної лінії заповненого низу
+                    if (g.y >= floorY - g.radius) {
+                        grains.splice(i, 1); // Видаляємо з масиву падаючих
+                    }
+                }
+
+                // Малюємо сам "намитий" шар піску на дні
+                ambCtx.shadowBlur = 0; // Вимикаємо важку тінь для великого прямокутника
+                ambCtx.fillStyle = '#1a1a3a';
+                ambCtx.fillRect(0, floorY, ambCanvas.width, ambCanvas.height - floorY);
+
+                // Додатковий красивий градієнтний ефект поверх заповнення
+                let grad = ambCtx.createLinearGradient(0, floorY, 0, ambCanvas.height);
+                grad.addColorStop(0, '#ff007f');
+                grad.addColorStop(0.5, '#45f3ff');
+                grad.addColorStop(1, '#050510');
+                ambCtx.fillStyle = grad;
+                ambCtx.globalAlpha = 0.4;
+                ambCtx.fillRect(0, floorY, ambCanvas.width, ambCanvas.height - floorY);
+                ambCtx.globalAlpha = 1.0;
+
+                ambientAnimationId = requestAnimationFrame(drawSand);
+            }
+
+            drawSand();
         }
 
         // --- КЕРУВАННЯ ГОДУВАННЯМ ---
@@ -186,7 +363,6 @@
             const animalDiv = document.getElementById('animal');
             const container = document.getElementById('foodContainer');
             
-            // Сховуємо кнопку переходу
             document.getElementById('next-btn').style.display = 'none';
 
             currentScale = 1.0;
@@ -252,7 +428,7 @@
                             animalDiv.innerText = lvl.happyEmoji;
                             animalDiv.classList.add('eating');
                             item.style.display = 'none';
-                            currentScale += 0.15; // Збільшуємо поступово, бо їжі стало більше
+                            currentScale += 0.15;
 
                             setTimeout(() => {
                                 animalDiv.innerText = lvl.character;
@@ -280,17 +456,13 @@
             
             if (remainingEdible.length === 0) {
                 soundWin();
-                
-                // Ховаємо решту предметів (неїстівний), щоб не відволікати
                 document.getElementById('foodContainer').style.display = 'none';
                 
                 if (currentLevel < levels.length - 1) {
-                    // Показуємо велику кнопку ДАЛІ
                     document.getElementById('next-btn').style.display = 'block';
                 } else {
-                    // Якщо це остання тваринка
                     const animalDiv = document.getElementById('animal');
-                    animalDiv.innerText = "🎉🦖🐱🐶🐵🐸🎉"; 
+                    animalDiv.innerText = "🎉🦖🐱🐶🐵🎉"; 
                     animalDiv.style.transform = "scale(1.0)";
                     document.getElementById('finish-btn').style.display = 'block';
                 }
