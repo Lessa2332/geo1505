@@ -6,19 +6,19 @@
     <title>Веселе Годування для Малюка</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
-        body, html { width: 100%; height: 100%; overflow: hidden; font-family: sans-serif; background: #1a1a2e; color: #fff; }
+        body, html { width: 100%; height: 100%; overflow: hidden; font-family: sans-serif; background: #121222; color: #fff; }
 
         /* ЕКРАН 1: Фізична сітка */
-        #canvas-container { position: absolute; width: 100%; height: 100%; z-index: 5; background: #111; }
+        #canvas-container { position: absolute; width: 100%; height: 100%; z-index: 5; background: #0b0b13; }
         canvas { width: 100%; height: 100%; display: block; }
-        .hint { position: absolute; top: 8%; left: 50%; transform: translateX(-50%); font-size: 26px; color: #ff007f; text-shadow: 0 0 10px #ff007f; pointer-events: none; text-align: center; font-weight: bold; width: 90%; }
+        .hint { position: absolute; top: 8%; left: 50%; transform: translateX(-50%); font-size: 26px; color: #ff5e97; text-shadow: 0 0 10px rgba(255, 94, 151, 0.5); pointer-events: none; text-align: center; font-weight: bold; width: 90%; }
 
         /* ЕКРАН 2: Головна гра */
         #game-screen {
             position: absolute; width: 100%; height: 100%; z-index: 1;
             display: flex; flex-direction: column; justify-content: space-between; align-items: center;
-            background: radial-gradient(circle, #222831 0%, #1a1a2e 100%);
-            padding: 20px; opacity: 0; transition: opacity 0.5s ease;
+            background: radial-gradient(circle, #1f242d 0%, #121222 100%);
+            padding: 20px; opacity: 0; transition: opacity 0.8s ease;
         }
         #game-screen.active { opacity: 1; z-index: 4; }
 
@@ -28,7 +28,7 @@
         }
         #animal { 
             font-size: 110px; 
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.3s; 
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
             cursor: pointer; display: inline-block; 
         }
         #animal.eating { transform: scale(1.4) rotate(5deg); }
@@ -41,7 +41,7 @@
 
         /* Нижня панель з їжею */
         .food-bar {
-            width: 100%; max-width: 600px; display: flex; justify-content: space-around; align-items: center; background: rgba(255, 255, 255, 0.08); padding: 15px; border-radius: 25px; border: 3px dashed #45f3ff; margin-bottom: 20px; min-height: 110px; flex-wrap: wrap; gap: 10px;
+            width: 100%; max-width: 600px; display: flex; justify-content: space-around; align-items: center; background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 25px; border: 3px dashed #5ce1e6; margin-bottom: 20px; min-height: 110px; flex-wrap: wrap; gap: 10px;
         }
 
         /* Елементи їжі */
@@ -54,36 +54,36 @@
         .game-btn {
             display: none; border: none; padding: 18px 45px; font-size: 24px; font-weight: bold; border-radius: 50px; cursor: pointer; margin-bottom: 30px; animation: pulse 1.5s infinite; z-index: 20;
         }
-        #next-btn { background: #4caf50; color: white; box-shadow: 0 0 20px #4caf50; }
-        #finish-btn { background: #ff007f; color: white; box-shadow: 0 0 20px #ff007f; }
-        #restart-btn { background: #00adb5; color: white; box-shadow: 0 0 20px #00adb5; }
+        #next-btn { background: #4caf50; color: white; box-shadow: 0 0 15px rgba(76,175,80,0.4); }
+        #finish-btn { background: #ff5e97; color: white; box-shadow: 0 0 15px rgba(255,94,151,0.4); }
+        #restart-btn { background: #00adb5; color: white; box-shadow: 0 0 15px rgba(0,173,181,0.4); }
 
-        #win-text { font-size: 28px; margin-top: 15px; color: #66fcf1; font-weight: bold; text-shadow: 0 0 10px #66fcf1; text-align: center; display: none; }
+        #win-text { font-size: 28px; margin-top: 15px; color: #66fcf1; font-weight: bold; text-shadow: 0 0 10px rgba(102,252,241,0.5); text-align: center; display: none; }
 
-        /* ЕКРАН 3: ІМЕРСИВНИЙ ЕМБІЄНТ (ПІСОЧНИЙ ГОДИННИК) */
+        /* ЕКРАН 3: ІМЕРСИВНИЙ ЕМБІЄНТ (М'ЯКИЙ ПІСОЧНИЙ ГОДИННИК) */
         #ambient-screen {
             position: absolute; width: 100%; height: 100%; top: 0; left: 0;
-            z-index: -1; opacity: 0; background: #050510;
-            transition: opacity 2s ease; display: flex; flex-direction: column;
+            z-index: -1; opacity: 0; background: #090911;
+            transition: opacity 2.5s ease-in-out; display: flex; flex-direction: column;
             justify-content: center; align-items: center;
         }
         #ambient-screen.active { z-index: 100; opacity: 1; }
         #ambient-canvas { position: absolute; width: 100%; height: 100%; top: 0; left: 0; }
         .ambient-title {
-            position: absolute; top: 15%; font-size: 32px; font-weight: bold;
-            color: #a5dff9; text-shadow: 0 0 15px rgba(165,223,249,0.6);
+            position: absolute; top: 15%; font-size: 30px; font-weight: bold;
+            color: #b0e2f5; text-shadow: 0 0 10px rgba(176,226,245,0.4);
             text-align: center; width: 80%; pointer-events: none; z-index: 101;
-            font-family: 'Comic Sans MS', sans-serif;
+            font-family: sans-serif;
         }
 
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-15px) rotate(-5deg); }
-            75% { transform: translateX(15px) rotate(5deg); }
+            25% { transform: translateX(-12px) rotate(-4deg); }
+            75% { transform: translateX(12px) rotate(4deg); }
         }
         @keyframes pulse {
             0% { transform: scale(1); }
-            50% { transform: scale(1.06); }
+            50% { transform: scale(1.04); }
             100% { transform: scale(1); }
         }
     </style>
@@ -109,17 +109,17 @@
         <div class="food-bar" id="foodContainer"></div>
     </div>
 
-    <!-- Імерсивний екран релаксу -->
+    <!-- Комфортний екран відпочинку -->
     <div id="ambient-screen">
         <div class="ambient-title">Оченята відпочивають... 🌊✨</div>
         <canvas id="ambient-canvas"></canvas>
     </div>
 
     <script>
-        // --- НАЛАШТУВАННЯ ТАЙМЕРУ ПАУЗИ ---
-        const TEST_MODE = true; // ЗАРАЗ TRUE ДЛЯ ТЕСТУ! Пауза увімкнеться через 10 секунд гри. Для релізу змініть на false.
-        const GAME_PLAY_TIME = TEST_MODE ? 10000 : 4 * 60 * 1000; // 10 секунд або 4 хвилини гри
-        const RELAX_TIME = 20000; // Час відпочинку для тесту зменшено до 20 секунд (для релізу поставте 60000)
+        // --- НАЛАШТУВАННЯ ТАЙМЕРІВ (РЕЛОУД ДЛЯ РЕЛІЗУ) ---
+        const TEST_MODE = false; // Змініть на true, якщо захочете знову швидко протестувати за 10 секунд
+        const GAME_PLAY_TIME = TEST_MODE ? 10000 : 5 * 60 * 1000; // 5 хвилин безперервної гри
+        const RELAX_TIME = TEST_MODE ? 15000 : 60000; // 1 хвилина заспокійливої паузи
         
         let gameTimer = null;
         let ambientAnimationId = null;
@@ -132,25 +132,25 @@
             try {
                 let osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
                 osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
                 osc.connect(gain); gain.connect(audioCtx.destination);
                 osc.start(); osc.stop(audioCtx.currentTime + duration);
             } catch(e) {}
         }
 
-        const soundSlice = () => playTone(600, 'sine', 0.04);
-        const soundDrag = () => playTone(300, 'triangle', 0.08);
-        const soundYum = () => { playTone(450, 'square', 0.08); setTimeout(() => playTone(600, 'square', 0.12), 80); };
-        const soundWrong = () => playTone(220, 'sawtooth', 0.25);
+        const soundSlice = () => playTone(550, 'sine', 0.04);
+        const soundDrag = () => playTone(280, 'triangle', 0.06);
+        const soundYum = () => { playTone(400, 'sine', 0.08); setTimeout(() => playTone(550, 'sine', 0.12), 70); };
+        const soundWrong = () => playTone(200, 'sine', 0.2); 
         const soundWin = () => { playTone(523, 'sine', 0.15); setTimeout(() => playTone(659, 'sine', 0.15), 120); setTimeout(() => playTone(784, 'sine', 0.3), 240); };
         const soundLevelUp = () => { playTone(587, 'sine', 0.1); setTimeout(() => playTone(698, 'sine', 0.1), 100); setTimeout(() => playTone(880, 'sine', 0.2), 200); };
 
-        // Генеративний космічний пад (Ембієнт)
+        // Глибокий заспокійливий звук хвиль (Низькі чисті частоти)
         function startAmbientSound() {
             try {
                 ambientAudioNodes = [];
-                const frequencies = [110, 165, 220, 330]; 
+                const frequencies = [110, 146, 220, 293]; // М'яка гармонія Ре-минор / Ля-минор
                 
                 frequencies.forEach(freq => {
                     let osc = audioCtx.createOscillator();
@@ -158,14 +158,14 @@
                     let lfo = audioCtx.createOscillator();
                     let lfoGain = audioCtx.createGain();
 
-                    osc.type = 'sine';
+                    osc.type = 'sine'; // Тільки чиста синусоїда без гострих кутів
                     osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
 
                     lfo.type = 'sine';
-                    lfo.frequency.setValueAtTime(0.2 + Math.random() * 0.3, audioCtx.currentTime);
-                    lfoGain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+                    lfo.frequency.setValueAtTime(0.15, audioCtx.currentTime); // Дуже повільне плавання гучності
+                    lfoGain.gain.setValueAtTime(0.03, audioCtx.currentTime);
 
-                    gain.gain.setValueAtTime(0.03, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.02, audioCtx.currentTime);
 
                     lfo.connect(lfoGain);
                     lfoGain.connect(gain.gain);
@@ -183,21 +183,21 @@
         function stopAmbientSound() {
             ambientAudioNodes.forEach(node => {
                 try {
-                    node.gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1.5);
+                    node.gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 2.0); // Дуже плавно тушимо звук
                     setTimeout(() => {
                         node.osc.stop();
                         node.lfo.stop();
-                    }, 1500);
+                    }, 2000);
                 } catch(e){}
             });
             ambientAudioNodes = [];
         }
 
-        // --- ПОВЕРНЕНО ВСІ 10 РІВНІВ ТВАРИНОК ---
+        // --- ВСІ 10 РІВНІВ ТВАРИНОК ---
         const levels = [
             { character: "🦖", happyEmoji: "😋", wrongEmoji: "🙅‍♂️", items: [{ emoji: "🌿", edible: true }, { emoji: "🥩", edible: true }, { emoji: "🍎", edible: true }, { emoji: "🍌", edible: true }, { emoji: "👟", edible: false }] },
             { character: "🐱", happyEmoji: "😻", wrongEmoji: "🙀", items: [{ emoji: "🐟", edible: true }, { emoji: "🥛", edible: true }, { emoji: "🐭", edible: true }, { emoji: "🥩", edible: true }, { emoji: "🎈", edible: false }] },
-            { character: "🐶", happyEmoji: "🐕", wrongEmoji: "😾", items: [{ emoji: "🍖", edible: true }, { emoji: "🥩", edible: true }, { emoji: "🧀", edible: true }, { emoji: "Корм", edible: true }, { emoji: "🧦", edible: false }] },
+            { character: "🐶", happyEmoji: "🐕", wrongEmoji: "😾", items: [{ emoji: "🍖", edible: true }, { emoji: "🥩", edible: true }, { emoji: "🧀", edible: true }, { emoji: "🦴", edible: true }, { emoji: "🧦", edible: false }] },
             { character: "🐵", happyEmoji: "🐒", wrongEmoji: "🙈", items: [{ emoji: "🍌", edible: true }, { emoji: "🍍", edible: true }, { emoji: "🥥", edible: true }, { emoji: "🍎", edible: true }, { emoji: "🔋", edible: false }] },
             { character: "🐭", happyEmoji: "🐹", wrongEmoji: "🐁", items: [{ emoji: "🧀", edible: true }, { emoji: "🌾", edible: true }, { emoji: "🥜", edible: true }, { emoji: "🌽", edible: true }, { emoji: "🧱", edible: false }] },
             { character: "🐸", happyEmoji: "🐸", wrongEmoji: "😝", items: [{ emoji: "🪰", edible: true }, { emoji: "🦟", edible: true }, { emoji: "🐛", edible: true }, { emoji: "🪲", edible: true }, { emoji: "🪙", edible: false }] },
@@ -239,7 +239,7 @@
             if (passed) return; ctx.clearRect(0, 0, canvas.width, canvas.height); points.forEach(p => p.update()); let slashed = false;
             for (let i = 0; i < 5; i++) { links.forEach(l => { if (!l.broken) { l.resolve(); if (mouse.down && checkIntersection(l.p1, l.p2, {x: mouse.px, y: mouse.py}, {x: mouse.x, y: mouse.y})) { l.broken = true; cutCount++; slashed = true; } } }); }
             if (slashed) soundSlice();
-            ctx.beginPath(); ctx.strokeStyle = '#ff007f'; ctx.lineWidth = 3; links.forEach(l => { if (!l.broken) { ctx.moveTo(l.p1.x, l.p1.y); ctx.lineTo(l.p2.x, l.p2.y); } }); ctx.stroke();
+            ctx.beginPath(); ctx.strokeStyle = '#ff5e97'; ctx.lineWidth = 3; links.forEach(l => { if (!l.broken) { ctx.moveTo(l.p1.x, l.p1.y); ctx.lineTo(l.p2.x, l.p2.y); } }); ctx.stroke();
             mouse.px = mouse.x; mouse.py = mouse.y;
             if (cutCount > 50) { passed = true; setTimeout(showGame, 300); } else { requestAnimationFrame(animate); }
         }
@@ -265,7 +265,7 @@
             gameTimer = setTimeout(triggerAmbientRelax, GAME_PLAY_TIME);
         }
 
-        // --- АКТИВАЦІЯ РЕЛАКСУ ---
+        // --- АКТИВАЦІЯ М'ЯКОГО РЕЛАКСУ ---
         function triggerAmbientRelax() {
             const ambScreen = document.getElementById('ambient-screen');
             ambScreen.classList.add('active');
@@ -273,7 +273,6 @@
             startAmbientSound();
             initAmbientSandSimulation();
 
-            // Повернення до процесу гри після відпочинку
             setTimeout(() => {
                 stopAmbientSound();
                 cancelAnimationFrame(ambientAnimationId);
@@ -282,7 +281,7 @@
             }, RELAX_TIME);
         }
 
-        // Анімація різнокольорового піску на Canvas
+        // Плавна пастельна анімація (М'який пісок без мерехтіння)
         function initAmbientSandSimulation() {
             const ambCanvas = document.getElementById('ambient-canvas');
             const ambCtx = ambCanvas.getContext('2d');
@@ -291,25 +290,28 @@
             ambCanvas.height = window.innerHeight;
 
             let grains = [];
-            const colors = ['#45f3ff', '#ff007f', '#ffbd59', '#4caf50', '#8a2be2'];
+            // Пастельні, приємні для очей малюка кольори (блакитний, лавандовий, рожевий, м'ята)
+            const colors = ['#7cd1e0', '#a78bfa', '#f472b6', '#34d399', '#60a5fa'];
             let floorY = ambCanvas.height;
 
             function drawSand() {
-                ambCtx.fillStyle = 'rgba(5, 5, 16, 0.2)';
+                // Чистий колір тла з мінімальним нашаруванням для плавного ходу піщинок
+                ambCtx.fillStyle = 'rgba(9, 9, 17, 0.12)';
                 ambCtx.fillRect(0, 0, ambCanvas.width, ambCanvas.height);
 
-                if (floorY > ambCanvas.height * 0.15) {
-                    floorY -= 0.25; // Швидкість заповнення екрана піском
+                if (floorY > ambCanvas.height * 0.25) {
+                    floorY -= 0.18; // Плавне підняття нижнього рівня
                 }
 
-                if (grains.length < 500) {
-                    for(let i = 0; i < 4; i++) {
+                // Генеруємо піщинки з невеликою інтенсивністю, щоб не рябіло в очах
+                if (grains.length < 350) {
+                    for(let i = 0; i < 2; i++) {
                         grains.push({
-                            x: ambCanvas.width / 2 + (Math.random() * 40 - 20),
+                            x: ambCanvas.width / 2 + (Math.random() * 20 - 10),
                             y: 0,
-                            vx: Math.random() * 2 - 1,
-                            vy: 3 + Math.random() * 5,
-                            radius: 3 + Math.random() * 5,
+                            vx: Math.random() * 1.2 - 0.6,
+                            vy: 2.2 + Math.random() * 2.5, // Повільне, спокійне падіння
+                            radius: 4 + Math.random() * 4,
                             color: colors[Math.floor(Math.random() * colors.length)]
                         });
                     }
@@ -323,8 +325,7 @@
                     ambCtx.beginPath();
                     ambCtx.arc(g.x, g.y, g.radius, 0, Math.PI * 2);
                     ambCtx.fillStyle = g.color;
-                    ambCtx.shadowBlur = 8;
-                    ambCtx.shadowColor = g.color;
+                    ambCtx.shadowBlur = 0; // ПОВНІСТЮ прибрано важкі миготливі тіні
                     ambCtx.fill();
 
                     if (g.y >= floorY - g.radius) {
@@ -332,16 +333,17 @@
                     }
                 }
 
-                ambCtx.shadowBlur = 0; 
-                ambCtx.fillStyle = '#1a1a3a';
+                // Малюємо спокійну основу
+                ambCtx.fillStyle = '#16162a';
                 ambCtx.fillRect(0, floorY, ambCanvas.width, ambCanvas.height - floorY);
 
+                // Ніжний градієнт поверх дна (Ефект підводного свічення)
                 let grad = ambCtx.createLinearGradient(0, floorY, 0, ambCanvas.height);
-                grad.addColorStop(0, '#ff007f');
-                grad.addColorStop(0.5, '#45f3ff');
-                grad.addColorStop(1, '#050510');
+                grad.addColorStop(0, '#a78bfa');
+                grad.addColorStop(0.6, '#7cd1e0');
+                grad.addColorStop(1, '#090911');
                 ambCtx.fillStyle = grad;
-                ambCtx.globalAlpha = 0.4;
+                ambCtx.globalAlpha = 0.25; // Дуже прозоро і м'яко
                 ambCtx.fillRect(0, floorY, ambCanvas.width, ambCanvas.height - floorY);
                 ambCtx.globalAlpha = 1.0;
 
@@ -401,7 +403,7 @@
                     let clientX = e.touches ? e.touches[0].clientX : e.clientX;
                     let clientY = e.touches ? e.touches[0].clientY : e.clientY;
                     currentX = clientX - startX; currentY = clientY - startY;
-                    item.style.transform = `translate(${currentX}px, ${currentY}px) scale(1.2)`;
+                    item.style.transform = `translate(${currentX}px, ${currentY}px) scale(1.15)`;
                 }
 
                 function dragEnd() {
@@ -475,7 +477,7 @@
             
             let count = 0;
             let interval = setInterval(() => {
-                playTone(400 + Math.random() * 600, 'sine', 0.15);
+                playTone(440 + Math.random() * 400, 'sine', 0.15);
                 count++;
                 if (count > 15) clearInterval(interval);
             }, 120);
