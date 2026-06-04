@@ -1,496 +1,875 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Веселе Годування для Малюка</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
-        body, html { width: 100%; height: 100%; overflow: hidden; font-family: sans-serif; background: #121222; color: #fff; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ГЕО-ДЕТЕКТИВ // Сектор 8: Оболонка</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#060a14;--panel:#0d1526;--card:#111d35;--border:#1e3a5f;
+  --cyan:#00d4ff;--cyan-dim:rgba(0,212,255,.12);
+  --green:#00ff88;--green-dim:rgba(0,255,136,.1);
+  --red:#ff3d5a;--red-dim:rgba(255,61,90,.1);
+  --amber:#ffb800;--amber-dim:rgba(255,184,0,.1);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,.1);
+  --text:#e2eaff;--muted:#5a7399;
+  --font-head:'Rajdhani',sans-serif;
+  --font-mono:'IBM Plex Mono',monospace;
+  --font-body:'Inter',sans-serif;
+}
+html,body{background:var(--bg);color:var(--text);font-family:var(--font-body);min-height:100dvh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+#app{position:relative;z-index:1;min-height:100dvh;display:flex;flex-direction:column}
 
-        /* ЕКРАН 1: Фізична сітка */
-        #canvas-container { position: absolute; width: 100%; height: 100%; z-index: 5; background: #0b0b13; }
-        canvas { width: 100%; height: 100%; display: block; }
-        .hint { position: absolute; top: 8%; left: 50%; transform: translateX(-50%); font-size: 26px; color: #ff5e97; text-shadow: 0 0 10px rgba(255, 94, 151, 0.5); pointer-events: none; text-align: center; font-weight: bold; width: 90%; }
+/* HEADER */
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;border-bottom:1px solid var(--border);background:rgba(13,21,38,.95);backdrop-filter:blur(12px);position:sticky;top:0;z-index:100}
+.hdr-logo{font-family:var(--font-head);font-size:17px;font-weight:700;letter-spacing:2px;color:var(--cyan);text-shadow:0 0 20px rgba(0,212,255,.4)}
+.hdr-logo span{color:var(--muted);font-weight:400}
+.hdr-right{display:flex;align-items:center;gap:8px}
+.hdr-badge{font-family:var(--font-mono);font-size:10px;background:var(--cyan-dim);border:1px solid rgba(0,212,255,.25);color:var(--cyan);padding:4px 10px;border-radius:20px}
 
-        /* ЕКРАН 2: Головна гра */
-        #game-screen {
-            position: absolute; width: 100%; height: 100%; z-index: 1;
-            display: flex; flex-direction: column; justify-content: space-between; align-items: center;
-            background: radial-gradient(circle, #1f242d 0%, #121222 100%);
-            padding: 20px; opacity: 0; transition: opacity 0.8s ease;
-        }
-        #game-screen.active { opacity: 1; z-index: 4; }
+/* SCREENS */
+.screen{display:none;flex-direction:column;flex:1;padding:16px;animation:fadeUp .3s ease}
+.screen.active{display:flex}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
-        /* Тваринка по центру */
-        .character-zone {
-            flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; position: relative;
-        }
-        #animal { 
-            font-size: 110px; 
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-            cursor: pointer; display: inline-block; 
-        }
-        #animal.eating { transform: scale(1.4) rotate(5deg); }
-        #animal.wrong { animation: shake 0.4s ease; }
+/* LOGIN */
+.login-wrap{display:flex;flex-direction:column;gap:16px;max-width:420px;width:100%;margin:auto;padding:24px 20px;background:var(--card);border:1px solid var(--border);border-radius:20px}
+.login-title{font-family:var(--font-head);font-size:22px;font-weight:700;color:var(--cyan);letter-spacing:1px}
+.login-sub{font-size:13px;color:var(--muted);line-height:1.5}
+.field-label{font-size:11px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;font-family:var(--font-mono)}
+select{width:100%;padding:12px 14px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:15px;font-family:var(--font-body);appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235a7399' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;transition:border-color .2s}
+select:focus{outline:none;border-color:var(--cyan)}
+select option {background-color: var(--card); color: var(--text);}
+.btn-start{width:100%;padding:16px;background:var(--cyan);color:#060a14;border:none;border-radius:12px;font-family:var(--font-head);font-size:17px;font-weight:700;letter-spacing:1px;cursor:pointer;transition:transform .15s,box-shadow .15s;text-transform:uppercase}
+.btn-start:active{transform:scale(.97)}
+.btn-start:hover{box-shadow:0 0 28px rgba(0,212,255,.35)}
 
-        /* Зона ротика для попадання */
-        .target-mouth {
-            position: absolute; width: 140px; height: 140px; top: 50%; left: 50%; transform: translate(-50%, -50%); border-radius: 50%;
-        }
+/* BRIEF */
+.brief-wrap{display:flex;flex-direction:column;gap:16px;max-width:460px;width:100%;margin:auto}
+.brief-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px}
+.brief-num{font-family:var(--font-mono);font-size:10px;color:var(--cyan);letter-spacing:2px;margin-bottom:8px}
+.brief-title{font-family:var(--font-head);font-size:20px;font-weight:700;margin-bottom:6px}
+.brief-text{font-size:14px;color:var(--muted);line-height:1.65}
+.btn-go{padding:15px 24px;background:var(--cyan);color:#060a14;border:none;border-radius:12px;font-family:var(--font-head);font-size:16px;font-weight:700;letter-spacing:1px;cursor:pointer;width:100%;text-transform:uppercase;transition:transform .15s}
+.btn-go:active{transform:scale(.97)}
 
-        /* Нижня панель з їжею */
-        .food-bar {
-            width: 100%; max-width: 600px; display: flex; justify-content: space-around; align-items: center; background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 25px; border: 3px dashed #5ce1e6; margin-bottom: 20px; min-height: 110px; flex-wrap: wrap; gap: 10px;
-        }
+/* PROGRESS */
+.prog-bar{height:3px;background:var(--border);border-radius:2px;margin-bottom:14px;overflow:hidden}
+.prog-fill{height:100%;background:var(--cyan);transition:width .5s ease;box-shadow:0 0 8px var(--cyan)}
+.game-hud{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.hud-left{display:flex;flex-direction:column;gap:2px}
+.hud-case{font-family:var(--font-mono);font-size:11px;color:var(--muted)}
+.hud-case span{color:var(--text)}
+.hud-gr{font-family:var(--font-mono);font-size:10px;padding:2px 8px;border-radius:20px;border:1px solid}
+.gr1{color:var(--purple);border-color:rgba(167,139,250,.3);background:var(--purple-dim)}
+.gr2{color:var(--amber);border-color:rgba(255,184,0,.3);background:var(--amber-dim)}
+.gr3{color:var(--cyan);border-color:rgba(0,212,255,.3);background:var(--cyan-dim)}
+.hud-score{font-family:var(--font-mono);font-size:13px;background:var(--cyan-dim);border:1px solid rgba(0,212,255,.25);color:var(--cyan);padding:4px 12px;border-radius:20px}
 
-        /* Елементи їжі */
-        .food-item {
-            font-size: 55px; cursor: grab; touch-action: none; display: inline-block; transition: transform 0.1s; z-index: 10;
-        }
-        .food-item:active { cursor: grabbing; transform: scale(1.2); }
+/* QUESTION CARD */
+.q-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:20px;margin-bottom:14px;position:relative;overflow:hidden;animation:cardDrop .35s cubic-bezier(.17,.84,.44,1)}
+.q-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--cyan),transparent)}
+@keyframes cardDrop{from{opacity:0;transform:translateY(-16px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+.q-tag{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;color:var(--amber);background:var(--amber-dim);border:1px solid rgba(255,184,0,.2);padding:3px 10px;border-radius:20px;margin-bottom:12px}
+.q-text{font-family:var(--font-head);font-size:17px;font-weight:600;line-height:1.4;margin-bottom:4px}
+.q-hint{font-size:13px;color:var(--muted);line-height:1.5;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
 
-        /* Кнопки дій */
-        .game-btn {
-            display: none; border: none; padding: 18px 45px; font-size: 24px; font-weight: bold; border-radius: 50px; cursor: pointer; margin-bottom: 30px; animation: pulse 1.5s infinite; z-index: 20;
-        }
-        #next-btn { background: #4caf50; color: white; box-shadow: 0 0 15px rgba(76,175,80,0.4); }
-        #finish-btn { background: #ff5e97; color: white; box-shadow: 0 0 15px rgba(255,94,151,0.4); }
-        #restart-btn { background: #00adb5; color: white; box-shadow: 0 0 15px rgba(0,173,181,0.4); }
+/* CHOICE OPTIONS */
+.opts-grid{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
+.opt{padding:13px 16px;background:rgba(255,255,255,.03);border:1.5px solid var(--border);border-radius:12px;cursor:pointer;font-size:14px;line-height:1.5;transition:border-color .15s,background .15s;-webkit-touch-callout:none;user-select:none;text-align:left;color:var(--text);width:100%;font-family:var(--font-body)}
+.opt:active{transform:scale(.98)}
+.opt.selected{border-color:var(--cyan);background:var(--cyan-dim)}
+.opt.correct{border-color:var(--green)!important;background:var(--green-dim)!important;color:var(--green)}
+.opt.wrong{border-color:var(--red)!important;background:var(--red-dim)!important;color:var(--red)}
+.opt.reveal{border-color:var(--green)!important;background:var(--green-dim)!important;color:var(--green)}
+.opt:disabled{cursor:default;pointer-events:none}
 
-        #win-text { font-size: 28px; margin-top: 15px; color: #66fcf1; font-weight: bold; text-shadow: 0 0 10px rgba(102,252,241,0.5); text-align: center; display: none; }
+/* MULTI-SELECT */
+.multi-hint{font-size:12px;color:var(--amber);font-family:var(--font-mono);margin-bottom:10px;letter-spacing:.5px}
+.btn-confirm{width:100%;padding:13px;background:var(--amber-dim);border:1.5px solid rgba(255,184,0,.35);border-radius:12px;font-family:var(--font-head);font-size:15px;font-weight:700;color:var(--amber);cursor:pointer;letter-spacing:1px;text-transform:uppercase;transition:all .15s;margin-top:4px}
+.btn-confirm:active{transform:scale(.97)}
+.btn-confirm:hover{background:var(--amber);color:#060a14}
 
-        /* ЕКРАН 3: ІМЕРСИВНИЙ ЕМБІЄНТ (М'ЯКИЙ ПІСОЧНИЙ ГОДИННИК) */
-        #ambient-screen {
-            position: absolute; width: 100%; height: 100%; top: 0; left: 0;
-            z-index: -1; opacity: 0; background: #090911;
-            transition: opacity 2.5s ease-in-out; display: flex; flex-direction: column;
-            justify-content: center; align-items: center;
-        }
-        #ambient-screen.active { z-index: 100; opacity: 1; }
-        #ambient-canvas { position: absolute; width: 100%; height: 100%; top: 0; left: 0; }
-        .ambient-title {
-            position: absolute; top: 15%; font-size: 30px; font-weight: bold;
-            color: #b0e2f5; text-shadow: 0 0 10px rgba(176,226,245,0.4);
-            text-align: center; width: 80%; pointer-events: none; z-index: 101;
-            font-family: sans-serif;
-        }
+/* DRAG MATCH */
+.drag-area{display:flex;flex-direction:column;gap:12px;margin-bottom:12px}
+.drag-row{display:flex;align-items:center;gap:10px}
+.drag-label{min-width:0;flex:1;padding:11px 14px;background:rgba(167,139,250,.07);border:1px solid rgba(167,139,250,.2);border-radius:10px;font-size:14px;color:var(--text)}
+.drag-arrow{color:var(--muted);font-size:18px;flex-shrink:0}
+.drag-slot{flex:1;min-height:44px;border:1.5px dashed var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--muted);cursor:pointer;transition:border-color .2s,background .2s;padding:8px;text-align:center}
+.drag-slot.filled{border-style:solid;border-color:var(--cyan);color:var(--text);background:var(--cyan-dim)}
+.drag-slot.correct-slot{border-color:var(--green)!important;background:var(--green-dim)!important;color:var(--green)!important}
+.drag-slot.wrong-slot{border-color:var(--red)!important;background:var(--red-dim)!important;color:var(--red)!important}
+.chips-pool{display:flex;flex-wrap:wrap;gap:8px;padding:14px;background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:12px;min-height:52px;margin-bottom:12px}
+.chip{padding:8px 14px;background:rgba(255,255,255,.05);border:1.5px solid var(--border);border-radius:8px;font-size:13px;cursor:pointer;transition:all .15s;-webkit-touch-callout:none;user-select:none;color:var(--text)}
+.chip:active{transform:scale(.95)}
+.chip.chip-selected{border-color:var(--cyan);background:var(--cyan-dim);color:var(--cyan)}
+.chip.chip-used{opacity:.3;pointer-events:none}
 
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-12px) rotate(-4deg); }
-            75% { transform: translateX(12px) rotate(4deg); }
-        }
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.04); }
-            100% { transform: scale(1); }
-        }
-    </style>
+/* SORT */
+.sort-list{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.sort-item{padding:12px 16px;background:rgba(255,255,255,.03);border:1.5px solid var(--border);border-radius:12px;font-size:14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:border-color .15s,background .15s;user-select:none;-webkit-touch-callout:none}
+.sort-item.sort-selected{border-color:var(--cyan);background:var(--cyan-dim)}
+.sort-item.sort-correct{border-color:var(--green);background:var(--green-dim);color:var(--green)}
+.sort-item.sort-wrong{border-color:var(--red);background:var(--red-dim);color:var(--red)}
+.sort-rank{font-family:var(--font-mono);font-size:12px;color:var(--muted);width:22px;text-align:right}
+.sort-rank.filled{color:var(--cyan)}
+.sort-instruction{font-size:12px;color:var(--amber);font-family:var(--font-mono);margin-bottom:10px}
+
+/* FEEDBACK OVERLAY */
+.fb-overlay{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(6,10,20,.9);backdrop-filter:blur(10px);padding:24px;animation:fadeIn .2s ease}
+.fb-icon{font-size:58px;animation:popIn .3s cubic-bezier(.17,.84,.44,1);margin-bottom:14px}
+.fb-status{font-family:var(--font-head);font-size:26px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}
+.fb-msg{font-size:13px;color:var(--muted);text-align:center;max-width:320px;line-height:1.6;margin-bottom:18px}
+.fb-fact{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;font-size:13px;color:#b0c4de;max-width:380px;width:100%;line-height:1.65;margin-bottom:20px}
+.fb-fact strong{color:var(--cyan)}
+.btn-next{padding:13px 34px;background:var(--cyan);color:#060a14;border:none;border-radius:12px;font-family:var(--font-head);font-size:15px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:transform .15s}
+.btn-next:active{transform:scale(.97)}
+
+/* EVAL */
+.eval-card{max-width:440px;width:100%;margin:auto;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px}
+.eval-title{font-family:var(--font-head);font-size:22px;font-weight:700;margin-bottom:6px}
+.eval-sub{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6}
+.eval-opts">div.eval-opt{padding:14px 16px;background:rgba(255,255,255,.03);border:1.5px solid var(--border);border-radius:12px;cursor:pointer;transition:border-color .2s,background .2s;font-size:14px;line-height:1.5;display:flex;align-items:flex-start;gap:12px}
+.eval-opt.sel{border-color:var(--cyan);background:var(--cyan-dim)}
+.eval-dot{width:18px;height:18px;min-width:18px;border-radius:50%;border:2px solid var(--muted);margin-top:2px;transition:all .2s;display:flex;align-items:center;justify-content:center}
+.eval-opt.sel .eval-dot{border-color:var(--cyan);background:var(--cyan)}
+.eval-opt.sel .eval-dot::after{content:'';display:block;width:6px;height:6px;border-radius:50%;background:#060a14}
+.btn-submit{width:100%;padding:15px;background:var(--green);color:#060a14;border:none;border-radius:12px;font-family:var(--font-head);font-size:16px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:transform .15s}
+.btn-submit:active{transform:scale(.97)}
+
+/* RESULT */
+.result-wrap{max-width:440px;width:100%;margin:auto;display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center}
+.score-ring{width:140px;height:140px;position:relative;margin:6px auto}
+.score-ring svg{transform:rotate(-90deg)}
+.ring-bg{fill:none;stroke:var(--border);stroke-width:10}
+.ring-fill{fill:none;stroke:var(--cyan);stroke-width:10;stroke-linecap:round;stroke-dasharray:326;stroke-dashoffset:326;transition:stroke-dashoffset 1.2s ease;filter:drop-shadow(0 0 6px var(--cyan))}
+.ring-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring-pct{font-family:var(--font-head);font-size:30px;font-weight:700;color:var(--cyan)}
+.ring-label{font-family:var(--font-mono);font-size:9px;color:var(--muted);letter-spacing:1px}
+.res-title{font-family:var(--font-head);font-size:22px;font-weight:700}
+.res-name{background:var(--cyan-dim);border:1px solid rgba(0,212,255,.25);border-radius:10px;padding:11px 18px;font-family:var(--font-mono);font-size:13px;color:var(--cyan);width:100%}
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%}
+.stat-c{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 8px;text-align:center}
+.stat-v{font-family:var(--font-head);font-size:20px;font-weight:700}
+.stat-l{font-size:10px;color:var(--muted);font-family:var(--font-mono);margin-top:2px}
+.res-sub{font-size:13px;color:var(--muted);line-height:1.6;max-width:340px}
+.sent-ok{font-size:12px;color:var(--green);background:var(--green-dim);border:1px solid rgba(0,255,136,.2);border-radius:8px;padding:8px 14px;font-family:var(--font-mono)}
+.gaps-box{width:100%;background:var(--card);border:1px solid rgba(255,61,90,.2);border-radius:14px;padding:16px;text-align:left}
+.gaps-title{font-family:var(--font-mono);font-size:10px;color:var(--red);letter-spacing:1.5px;margin-bottom:8px}
+.gap-item{font-size:13px;color:#d0a0a8;padding:5px 0;border-bottom:1px solid var(--border);line-height:1.5}
+.gap-item:last-child{border-bottom:none}
+
+/* RESTART BUTTON */
+.btn-retry-mission {width:100%;padding:14px;background:rgba(167,139,250,.1);border:1.5px dashed var(--purple);border-radius:12px;font-family:var(--font-head);font-size:15px;font-weight:700;color:var(--purple);cursor:pointer;letter-spacing:1px;text-transform:uppercase;transition:all .15s}
+.btn-retry-mission:active{transform:scale(.97)}
+.btn-retry-mission:hover{background:var(--purple);color:#060a14;border-style:solid}
+
+/* LOCK */
+.lock-wrap{max-width:360px;margin:auto;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px;padding:40px 20px}
+.lock-icon{font-size:54px}
+.lock-title{font-family:var(--font-head);font-size:22px;font-weight:700;color:var(--red)}
+.lock-text{font-size:14px;color:var(--muted);line-height:1.6}
+
+/* LOADER */
+.loader-sc{position:fixed;inset:0;z-index:500;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+.loader-spin{width:38px;height:38px;border-radius:50%;border:3px solid var(--border);border-top-color:var(--cyan);animation:spin .8s linear infinite}
+.loader-txt{font-family:var(--font-mono);font-size:12px;color:var(--muted);letter-spacing:1px}
+
+/* PARTICLES */
+.particle{position:fixed;pointer-events:none;z-index:300;border-radius:50%;animation:pfly .75s ease-out forwards}
+@keyframes pfly{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes popIn{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.pulse-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);animation:pring 1.5s infinite}
+@keyframes pring{0%{box-shadow:0 0 0 0 rgba(0,255,136,.4)}70%{box-shadow:0 0 0 7px rgba(0,255,136,0)}100%{box-shadow:0 0 0 0 rgba(0,255,136,0)}}
+</style>
 </head>
 <body>
+<div id="app">
+<div class="hdr">
+  <div class="hdr-logo">ГЕО<span>—</span>ДЕТЕКТИВ</div>
+  <div class="hdr-right">
+    <div class="hdr-badge" id="hdr-status">СЕКТОР 8</div>
+  </div>
+</div>
 
-    <div id="canvas-container">
-        <div class="hint">Пальчиком рви сітку! 🦖🐱✨</div>
-        <canvas id="clothCanvas"></canvas>
+<div id="sc-lock" class="screen">
+  <div class="lock-wrap">
+    <div class="lock-icon">🔐</div>
+    <div class="lock-title">ДОСТУП ОБМЕЖЕНО</div>
+    <div class="lock-text">Твій пристрій вже надіслав офіційний звіт у штаб. Проте ти можеш запустити симулятор повторно.</div>
+    <button class="btn-retry-mission" id="btn-lock-retry" style="margin-top:10px;">ЗАПУСТИТИ СИМУЛЯТОР ↻</button>
+  </div>
+</div>
+
+<div id="sc-login" class="screen active">
+  <div class="login-wrap">
+    <div>
+      <div class="login-title">🔍 АВТОРИЗАЦІЯ</div>
+      <div class="login-sub">Введи дані агента для доступу до оперативної справи</div>
     </div>
-
-    <div id="game-screen">
-        <div class="character-zone">
-            <div id="animal">🦖</div>
-            <div class="target-mouth" id="mouthTarget"></div>
-            <div id="win-text">ТИ НАЙКРАЩИЙ! 🏆</div>
-        </div>
-
-        <button id="next-btn" class="game-btn" onclick="goToNextLevel()">ДАЛІ ➡️</button>
-        <button id="finish-btn" class="game-btn" onclick="finalCelebration()">ЗАВЕРШИТИ ГРУ 🏁</button>
-        <button id="restart-btn" class="game-btn" onclick="resetGame()">ГРАТИ ЗНОВУ 🔄</button>
-
-        <div class="food-bar" id="foodContainer"></div>
+    <div>
+      <div class="field-label">Підрозділ (клас)</div>
+      <select id="sel-class">
+        <option value="">— Оберіть клас —</option>
+        <option>7-А</option><option>7-Б</option><option>7-В</option><option>7-Г</option><option>7-Д</option>
+      </select>
     </div>
-
-    <!-- Комфортний екран відпочинку -->
-    <div id="ambient-screen">
-        <div class="ambient-title">Оченята відпочивають... 🌊✨</div>
-        <canvas id="ambient-canvas"></canvas>
+    <div>
+      <div class="field-label">Позивний (прізвище)</div>
+      <select id="sel-name"><option value="">— Спочатку оберіть клас —</option></select>
     </div>
+    <button class="btn-start" id="btn-start-mission">РОЗПОЧАТИ МІСІЮ ▶</button>
+  </div>
+</div>
 
-    <script>
-        // --- НАЛАШТУВАННЯ ТАЙМЕРІВ (РЕЛОУД ДЛЯ РЕЛІЗУ) ---
-        const TEST_MODE = false; // Змініть на true, якщо захочете знову швидко протестувати за 10 секунд
-        const GAME_PLAY_TIME = TEST_MODE ? 10000 : 5 * 60 * 1000; // 5 хвилин безперервної гри
-        const RELAX_TIME = TEST_MODE ? 15000 : 60000; // 1 хвилина заспокійливої паузи
-        
-        let gameTimer = null;
-        let ambientAnimationId = null;
-        let ambientAudioNodes = []; 
+<div id="sc-brief" class="screen">
+  <div class="brief-wrap">
+    <div class="brief-card">
+      <div class="brief-num">// БРИФІНГ МІСІЇ</div>
+      <div class="brief-title">Операція «ГЕО-ОБОЛОНКА»</div>
+      <div class="brief-text">Ти — спеціальний агент Географічного Відомства. Попереду <strong style="color:var(--cyan)">12 оперативних завдань</strong> з трьох секцій:<br><br>
+      <span style="color:var(--purple)">◆ ГР 1</span> — Поняття географічної оболонки та її закономірності<br>
+      <span style="color:var(--amber)">◆ ГР 2</span> — Природні зони материків та аналіз карт<br>
+      <span style="color:var(--cyan)">◆ ГР 3</span> — Широтна зональність, висотна поясність та екологія
+      </div>
+    </div>
+    <div class="brief-card" style="border-color:rgba(255,184,0,.2);background:rgba(255,184,0,.04)">
+      <div class="brief-num" style="color:var(--amber)">// ТИПИ ЗАВДАНЬ</div>
+      <div class="brief-text" style="color:#d4ae70">Вибір однієї відповіді, множинний вибір, просторове сортування та встановлення логічних пар. Використовуй оперативні підказки штабу.</div>
+    </div>
+    <button class="btn-go" id="btn-accept-mission">ПРИЙНЯТИ МІСІЮ →</button>
+  </div>
+</div>
 
-        // --- СИНТЕЗАТОР ЗВУКІВ ---
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
-        function playTone(freq, type, duration) {
-            try {
-                let osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
-                osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.start(); osc.stop(audioCtx.currentTime + duration);
-            } catch(e) {}
-        }
+<div id="sc-game" class="screen">
+  <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+  <div class="game-hud">
+    <div class="hud-left">
+      <div class="hud-case">ЗАВДАННЯ <span id="case-num">1</span>/12</div>
+      <div id="hud-gr" class="hud-gr gr1">ГР 1</div>
+    </div>
+    <div class="hud-score" id="hud-score">0 ОЧОК</div>
+  </div>
+  <div id="q-area"></div>
+</div>
 
-        const soundSlice = () => playTone(550, 'sine', 0.04);
-        const soundDrag = () => playTone(280, 'triangle', 0.06);
-        const soundYum = () => { playTone(400, 'sine', 0.08); setTimeout(() => playTone(550, 'sine', 0.12), 70); };
-        const soundWrong = () => playTone(200, 'sine', 0.2); 
-        const soundWin = () => { playTone(523, 'sine', 0.15); setTimeout(() => playTone(659, 'sine', 0.15), 120); setTimeout(() => playTone(784, 'sine', 0.3), 240); };
-        const soundLevelUp = () => { playTone(587, 'sine', 0.1); setTimeout(() => playTone(698, 'sine', 0.1), 100); setTimeout(() => playTone(880, 'sine', 0.2), 200); };
+<div id="sc-eval" class="screen">
+  <div class="eval-card">
+    <div class="eval-title">🗂 ЗВІТ АГЕНТА</div>
+    <div class="eval-sub">12 завдань виконано. Оціни чесно свій рівень впевненості у темі «Географічна оболонка»:</div>
+    <div class="eval-opts">
+      <div class="eval-opt" data-value="Впевнено">
+        <div class="eval-dot"></div>
+        <div><strong>Впевнено</strong><br><span style="font-size:12px;color:var(--muted)">Розумію закономірності природи та аналізую карти без проблем</span></div>
+      </div>
+      <div class="eval-opt" data-value="Частково">
+        <div class="eval-dot"></div>
+        <div><strong>Частково</strong><br><span style="font-size:12px;color:var(--muted)">Загалом зрозуміло, але плутаюсь у висотній поясності чи картах</span></div>
+      </div>
+      <div class="eval-opt" data-value="Потребую підтримки">
+        <div class="eval-dot"></div>
+        <div><strong>Потребую підтримки</strong><br><span style="font-size:12px;color:var(--muted)">Закономірності геооболонки складні, потрібні додаткові роз'яснення</span></div>
+      </div>
+    </div>
+    <button class="btn-submit" id="btn-submit-report">НАДІСЛАТИ ЗВІТ У ШТАБ →</button>
+  </div>
+</div>
 
-        // Глибокий заспокійливий звук хвиль (Низькі чисті частоти)
-        function startAmbientSound() {
-            try {
-                ambientAudioNodes = [];
-                const frequencies = [110, 146, 220, 293]; // М'яка гармонія Ре-минор / Ля-минор
-                
-                frequencies.forEach(freq => {
-                    let osc = audioCtx.createOscillator();
-                    let gain = audioCtx.createGain();
-                    let lfo = audioCtx.createOscillator();
-                    let lfoGain = audioCtx.createGain();
+<div id="sc-result" class="screen">
+  <div class="result-wrap">
+    <div class="res-title" id="res-title">МІСІЮ ВИКОНАНО</div>
+    <div class="res-name" id="res-name"></div>
+    <div class="score-ring">
+      <svg viewBox="0 0 110 110" width="140" height="140">
+        <circle class="ring-bg" cx="55" cy="55" r="52"/>
+        <circle class="ring-fill" id="ring-fill" cx="55" cy="55" r="52"/>
+      </svg>
+      <div class="ring-text"><div class="ring-pct" id="ring-pct">0%</div><div class="ring-label">ТОЧНІСТЬ</div></div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-c"><div class="stat-v" id="s-gr1">—</div><div class="stat-l">ГР 1</div></div>
+      <div class="stat-c"><div class="stat-v" id="s-gr2">—</div><div class="stat-l">ГР 2</div></div>
+      <div class="stat-c"><div class="stat-v" id="s-gr3">—</div><div class="stat-l">ГР 3</div></div>
+    </div>
+    <div id="gaps-section"></div>
+    <div class="res-sub" id="res-sub"></div>
+    <div class="sent-ok" id="sent-ok" style="display:none"><span class="pulse-dot"></span> &nbsp;Звіт надіслано в штаб</div>
+    
+    <button class="btn-retry-mission" id="btn-restart" style="margin-top:10px;">ПРОЙТИ ЗНОВУ (ТРЕНУВАННЯ) ↻</button>
+  </div>
+</div>
 
-                    osc.type = 'sine'; // Тільки чиста синусоїда без гострих кутів
-                    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+<div id="fb-overlay" class="fb-overlay" style="display:none">
+  <div class="fb-icon" id="fb-icon"></div>
+  <div class="fb-status" id="fb-status"></div>
+  <div class="fb-msg" id="fb-msg"></div>
+  <div class="fb-fact" id="fb-fact"></div>
+  <button class="btn-next" id="fb-btn">ДАЛІ →</button>
+</div>
 
-                    lfo.type = 'sine';
-                    lfo.frequency.setValueAtTime(0.15, audioCtx.currentTime); // Дуже повільне плавання гучності
-                    lfoGain.gain.setValueAtTime(0.03, audioCtx.currentTime);
+<div id="loader" class="loader-sc" style="display:none">
+  <div class="loader-spin"></div>
+  <div class="loader-txt">ШИФРУВАННЯ ДАНИХ...</div>
+</div>
+</div>
 
-                    gain.gain.setValueAtTime(0.02, audioCtx.currentTime);
+<script>
+const SCRIPT_URL="https://script.google.com/macros/s/AKfycbwUCjrOlZuUGPrGzauifB6v-qoVT9arKkCKlXZxiQSgYvDlFJyO7jg0BEe_OtHrKfEDXg/exec";
 
-                    lfo.connect(lfoGain);
-                    lfoGain.connect(gain.gain);
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
+const DB={
+  "7-А":["Ашихмін Ярослав","Внуков Веніамін","Волков Давид","Вулєр Іван","Дабіжа Марія","Димитров Дмитро","Кирилюк Артем","Косар Нікіта","Кравчук Мілана","Кривенок Ілля","Лазаревич Георгій","Лазаревич Ніколь","Лісіцина Дар'я","Нестерова Varvara","Перванчук Марк","Полуянов Семен","Попков Андрій","Савченко Наталія","Скопенко Ніка","Усольцева Аріна","Халабура Вікторія","Химич Артем","Якутенко Володимир","Ященко Анастасія","Бохонок Олеся"],
+  "7-Б":["Алєксєюк Ірина","Андрусік Ул'яна","Болясна Аріна","Войтех Богдан","Голімбовська Єлизавета","Гуляєва Марія","Зєнов Геннадій","Кожухар Злата","Колесниченко Артем","Коростельова Анфіса","Кузьмін Дмитро","Левченко Тимур","Литовченко Кіра","Михайлова Ксенія","Ніколаєв Ілля","Ніща Дар'я","Переберін Артем","Сич Кіріл","Сташко Кароліна","Стерпул Олександр","Харченко Гліб","Хомутова Анна","Чернюк Андрій","Шаріпова Анастасія","Штурхаль Марія","Яремчук Єгор","Бохонок Олеся"],
+  "7-В":["Бєгу Євгеній","Білоус Катерина","Бодьо Арина","Величко Данило","Гаврилова Кира","Гаврилова Маргарита","Гєчева Вероніка","Гордієнко Дмитро","Іваньоха Мирослав","Ісхаков Кирило","Кушнір Віталіна","Левченко Олександр","Мацієвич Дмитро","Мельниченко Анастасія","Муравйов Андрій","Ніколайчук Іван","Остапчук Ангеліна","Охват Софія","Пєшкова Поліна","Піроженко Анна","Саванчук Крістіна","Чермних Єгор","Бохонок Олеся"],
+  "7-Г":["Баличев Давід","Білоножкіна Вікторія","Бохонок Олеся","Григор'єв Максим","Єленич Софія","Жемчужникова Дар'я","Карп Христина","Карташов Михайло","Клименко Назар","Ковальов Володимир","Маслій Руслан","Мельников Тимур","Потребенко Меланія","Раєнко Таїсія","Саранін Олександр","Солодухіна Жанна","Сопель Максим","Стоянов Владислав","Чеховський Кирило","Чорний Акім","Шеремет Ернест"],
+  "7-Д":["Балинський Вячеслав","Бохонок Олеся","Бурлак Аміна","Ганошенко Маттіа","Грозивчак Олександр","Дойчева Ангеліна","Касьянова Аріна","Кербенко Артем","Ковальчук Глєб","Лебін Ярослав","Маслаков Артем","Масленніков Іван","Михайловська Катерина","Перепьолка Таїсія","Петрова Аріна","Прокопенко Ярослав","Семенов Семен","Ткаченко Демір"]
+};
 
-                    osc.start();
-                    lfo.start();
+const CASES=[
+  {
+    id:1,gr:"GR1",gap:"ГР1_Поняття_географічної_оболонки",
+    tag:"ЗАВДАННЯ 1 — ГР 1",type:"choice",
+    text:"Що таке географічна оболонка Землі?",
+    hint:"Це глобальна екосистема, де взаємодіють нижні шари атмосфери, верхня частина літосфери, вся гідросфера та біосфера.",
+    opts:["Тверда кам'яна оболонка планети","Найбільший природний комплекс Землі, утворений взаємодією всіх оболонок","Повітряна оболонка, що захищає Землю від метеоритів","Штучно створене середовище для життя людини"],
+    correct:1,
+    fb:{c:{icon:"🎯",st:"ПРАВИЛЬНО",msg:"Базове поняття засвоєно!",fact:"<strong>Географічна оболонка</strong> — це найбільший природний комплекс, де всі сфери проникають одна в одну і тісно взаємодіють."},w:{icon:"❌",st:"ПОМИЛКА",msg:"Це лише одна зі сфер.",fact:"Правильна відповідь: <strong>Найбільший природний комплекс Землі</strong>. Вона об'єднує атмосферу, літосферу, гідросферу та біосферу."}}
+  },
+  {
+    id:2,gr:"GR1",gap:"ГР1_Цілісність_ГО",
+    tag:"ЗАВДАННЯ 2 — ГР 1",type:"choice",
+    text:"Якщо в горах вирубати ліс, це призведе до змивання ґрунтів і пересихання річок. Яку закономірність географічної оболонки це ілюструє?",
+    hint:"Усі компоненти природи міцно пов'язані між собою. Зміна одного тягне зміну інших.",
+    opts:["Ритмічність","Кругообіг речовин","Широтна зональність","Цілісність"],
+    correct:3,
+    fb:{c:{icon:"🎯",st:"ПРАВИЛЬНО",msg:"Закон цілісності виявлено!",fact:"<strong>Цілісність</strong> означає, що природа — єдиний організм. Знищення лісу (біосфера) руйнує ґрунт (літосфера) і річки (гідросфера)."},w:{icon:"❌",st:"ПОМИЛКА",msg:"Зверни увагу на зв'язок компонентів.",fact:"Правильна відповідь: <strong>Цілісність</strong>. Зміна одного компонента неминуче викликає ланцюгову реакцію і трансформацію всього комплексу."}}
+  },
+  {
+    id:3,gr:"GR1",gap:"ГР1_Закономірності_ГО",
+    tag:"ЗАВДАННЯ 3 — ГР 1",type:"match",
+    text:"З'єднай закономірність розвитку географічної оболонки з її проявом у природі:",
+    hint:"Ритмічність — це повторюваність. Кругообіг — це рух по колу.",
+    pairs:[
+      {label:"Ритмічність",answer:"Зміна дня і ночі, пір року"},
+      {label:"Кругообіг речовин",answer:"Випаровування води, дощ, стік у річки"},
+      {label:"Цілісність",answer:"Взаємозв'язок усіх сфер Землі"},
+      {label:"Зональність",answer:"Закономірна зміна природи від екватора до полюсів"}
+    ],
+    chips:["Зміна дня і ночі, пір року","Випаровування води, дощ, стік у річки","Взаємозв'язок усіх сфер Землі","Закономірна зміна природи від екватора до полюсів","Танення льодовиків"],
+    fb:{c:{icon:"🎯",st:"ПРАВИЛЬНО",msg:"Закономірності визначено бездоганно!",fact:"<strong>Цілісність, ритмічність, кругообіг речовин та зональність</strong> — це чотири фундаментальні стовпи, на яких тримається вся географічна оболонка."},w:{icon:"❌",st:"ПОМИЛКА",msg:"Є плутанина у поняттях.",fact:"Ритмічність — це повторюваність (день/ніч). Кругообіг — це рух води. Цілісність — зв'язок сфер. Зональність — зміна від екватора до полюсів."}}
+  },
+  {
+    id:4,gr:"GR1",gap:"ГР1_Компоненти_ПК",
+    tag:"ЗАВДАННЯ 4 — ГР 1",type:"multichoice",
+    text:"Обери ВСІ природні компоненти, які обов'язково входять до складу будь-якого природного комплексу (ландшафту):",
+    hint:"Природний комплекс утворюється поєднанням усіх природних сфер: гірські породи, вода, повітря, життя.",
+    opts:["Гірські породи та рельєф","Клімат (повітря)","Будівлі та дороги","Вода (внутрішні води)","Ґрунт, рослини і тварини","Автомобілі"],
+    correctSet:[0,1,3,4],
+    fb:{c:{icon:"🎯",st:"ПРАВИЛЬНО",msg:"Компоненти ландшафту зібрано!",fact:"<strong>Природний комплекс</strong> — це єдність 5 компоненти: гірських порід, повітря (клімату), вод, ґрунтів і живих організмів на певній території."},w:{icon:"❌",st:"ПОМИЛКА",msg:"Будівлі та авто — це антропогенне.",fact:"Правильні відповіді: <strong>гірські породи, клімат, вода, ґрунти і життя</strong>. Об'єкти створені людиною не є первинними компонентами природи."}}
+  },
+  {
+    id:5,gr:"GR1",gap:"ГР1_Зміна_ПК",
+    tag:"ЗАВДАННЯ 5 — ГР 1",type:"choice",
+    text:"Який із наведених природних комплексів є найменшим і може бути змінений людиною найшвидше?",
+    hint:"Океани та материки змінити важко. Шукай локальний об'єкт у своїй місцевості.",
+    opts:["Материк Євразія","Світовий океан","Місцевий яр, балка або невелике озеро","Природна зона пустель"],
+    correct:2,
+    fb:{c:{icon:"🎯",st:"ПРАВИЛЬНО",msg:"Локальні комплекси знайдено!",fact:"<strong>Яр, балка, галявина чи невелике озеро</strong> — це дрібні (локальні) природні комплекси, які людина здатна швидко знищити або змінити своєю діяльністю."},w:{icon:"❌",st:"ПОМИЛКА",msg:"Зверни увагу на масштаб.",fact:"Правильна відповідь: <strong>Місцевий яр або озеро</strong>. Материки і природні зони — це глобальні та регіональні комплекси величезних масштабів."}}
+  },
+  {
+    id:6,gr:"GR2",gap:"ГР2_Причина_зональності",
+    tag:"ЗАВДАННЯ 6 — ГР 2",type:"choice",
+    text:"Працюючи з картою природних зон, ти помічаєш їх послідовну зміну. Що є ГОЛОВНОЮ причиною формування різних природних зон на рівнинах?",
+    hint:"Природна зона визначається кліматом. Що формує клімат у першу чергу?",
+    opts:["Різна геологічна будова материків","Зміна співвідношення тепла і вологи залежно від географічної широти","Вплив руйнівних ураганів і торнадо","Напрямок течії великих річок"],
+    correct:1,
+    fb:{c:{icon:"🎯",st:"ПРАВИЛЬНО",msg:"Причину зональності встановлено!",fact:"<strong>Співвідношення тепла і вологи</strong> є ключовим. Якщо тепла багато, а вологи мало — утворюється пустеля. Якщо тепла і вологи багато — екваторіальний ліс."},w:{icon:"❌",st:"ПОМИЛКА",msg:"Клімат формує зони.",fact:"Правильна відповідь: <strong>Зміна співвідношення тепла і вологи</strong>. Рослини і тварини підлаштовуються під температурний і водний режим своєї широти."}}
+  },
+  {
+    id:7,gr:"GR2",gap:"ГР2_Аналіз_карти_зон",
+    tag:"ЗАВДАННЯ 7 — ГР 2",type:"choice",
+    text:"Аналізуючи карту Африки, ти бачиш зону вологих екваторіальних лісів, а на північ і південь від неї — савани. Про що це свідчить?",
+    hint:"Це класичний прояв головного закону географії на рівнинах.",
+    opts:["Про прояв широтної зональності (симетричної зміни зон від екватора)","Про висотну поясність","Про випадкове розташування природних зон","Про те, що ліс вже вирубали місцеві жителі"],
+    correct:0,
+    fb:{c:{icon:"🎯",st:"ПРАВИЛЬНО",msg:"Закономірність на карті виявлено!",fact:"<strong>Широтна зональність</strong> в Африці проявляється ідеально: від екватора на північ і на південь послідовно змінюються ліси, савани та пустелі."},w:{icon:"❌",st:"ПОМИЛКА",msg:"Поглянь на рух від екватора.",fact:"Правильна відповідь: <strong>Про прояв широтної зональності</strong>. Зони ніколи не розташовуються випадково, вони суворо слідують за кліматичними поясами."}}
+  },
+  {
+    id:8,gr:"GR2",gap:"ГР2_Читання_карти_зон",
+    tag:"ЗАВДАННЯ 8 — ГР 2",type:"sort",
+    text:"Користуючись уявним атласом, розташуй природні зони Північної півкулі по порядку з півночі на південь (від полюса до екватора):",
+    hint:"Сортуй від найхолоднішого до жаркого та вологого клімату.",
+    items:["Арктичні пустелі (полюс)","Тундра","Тайга (хвойні ліси)","Степи","Тропічні пустелі","Екваторіальні ліси (екватор)"],
+    correctOrder:[0,1,2,3,4,5],
+    fb:{c:{icon:"🎯",st:"ПРАВИЛЬНО",msg:"Зони розташовані ідеально!",fact:"Ця послідовність — <strong>Арктичні пустелі → Тундра → Тайга → Степи → Тропічні пустелі → Екваторіальні ліси</strong> — і є відображенням закону широтної зональності."},w:{icon:"❌",st:"ПОМИЛКА",msg:"Порушено порядок зон.",fact:"Правильний порядок від полюса до екватора: <strong>Арктика → Тундра → Тайга → Степи → Тропіки → Екватор</strong>. Від льоду до вічного літа."}}
+  },
+  {
+    id:9,gr:"GR2",gap:"ГР2_Порушення_зональності",
+    tag:"ЗАВДАННЯ 9 — ГР 2",type:"choice",
+    text:"Іноді природна зона тягнеться не суворо із заходу на схід, а різко вигинається вздовж узбережжя океану. Що найчастіше порушує ідеальну широтну зональність?",
+    hint:"Що є в океані такого, що може принести холод на екватор або надлишок вологи і тепла на полюс?",
+    opts:["Діяльність місцевих тварин","Теплі та холодні океанічні течії, а також великі гори","Фази Місяця","Танення снігів весною"],
+    correct:1,
+    fb:{c:{icon:"🎯",st:"ПРАВИЛЬНО",msg:"Аномалії пояснено правильно!",fact:"<strong>Океанічні течії та рельєф</strong> порушують ідеальні смуги природних зон. Холодні течії 'затягують' пустелі далеко на північ або південь вздовж берегів."},w:{icon:"❌",st:"ПОМИЛКА",msg:"Що впливає на клімат берегів?",fact:"Правильна відповідь: <strong>Теплі та холодні океанічні течії, а також гори</strong>. Вони перерозподіляють тепло і вологу, деформуючи природні зони."}}
+  },
+  {
+    id:10,gr:"GR3",gap:"ГР3_Висотна_поясність",
+    tag:"ЗАВДАННЯ 10 — ГР 3",type:"choice",
+    text:"Агент досліджує гори Гімалаї. Біля підніжжя — спекотні джунглі, вище — хвойні ліси, а на вершині — вічні сніги. Як називається ця закономірність?",
+    hint:"Зміна природних зон в горах відбувається по вертикалі (з висотою), оскільки падає температура.",
+    opts:["Широтна зональність","Висотна (вертикальна) поясність","Кругообіг води в природі","Тектонічний розлом"],
+    correct:1,
+    fb:{c:{icon:"🎯",st:"ПРАВИЛЬНО",msg:"Гірська закономірність підтверджена!",fact:"<strong>Висотна (вертикальна) поясність</strong> — це зміна природних комплексів у горах від підніжжя до вершини через зниження температури та зміну вологості."},w:{icon:"❌",st:"ПОМИЛКА",msg:"Зональність — це для рівнин.",fact:"Правильна відповідь: <strong>Висотна (вертикальна) поясність</strong>. У горах зони називаються поясами, бо вони ніби «оперізують» гору на різних висотах."}}
+  },
+  {
+    id:11,gr:"GR3",gap:"ГР3_Залежність_висотної_поясності",
+    tag:"ЗАВДАННЯ 11 — ГР 3",type:"choice",
+    text:"Від чого залежить кількість висотних поясів у горах?",
+    hint:"Чим вища гора і чим ближче вона до жаркого екватора (де стартує від найтеплішого поясу), тим більше поясів у ній вміститься.",
+    opts:["Тільки від геологічного віку гір","Від висоти гір та їхньої близькості до екватора","Від наявності річок на схилах","Від кількості хижаків у лісах"],
+    correct:1,
+    fb:{c:{icon:"🎯",st:"ПРАВИЛЬНО",msg:"Фактори гірського клімату встановлено!",fact:"Максимальна кількість висотних поясів буде у <strong>високих горах, що лежать на екваторі</strong> (наприклад, Анди). Вони стартують від джунглів і закінчуються льодовиками."},w:{icon:"❌",st:"ПОМИЛКА",msg:"Згадай про стартову температуру біля підніжжя.",fact:"Правильна відповідь: <strong>Від висоти гір та близькості до екватора</strong>. Низькі гори або гори на полюсах (де і так холодно) матимуть мало поясів."}}
+  },
+  {
+    id:12,gr:"GR3",gap:"ГР3_Трансформація_комплексів",
+    tag:"ЗАВДАННЯ 12 — ГР 3",type:"multichoice",
+    text:"Проєкт екологічного прогнозу. Обери ВСІ можливі негативні наслідки масштабного осушення боліт та вирубки лісів на Поліссі:",
+    hint:"Згадай закон цілісності. Якщо знищити один компонент (воду/ліс), постраждають абсолютно всі інші.",
+    opts:["Зниження рівня ґрунтових вод та обміління колодязів","Збільшення кількості риби у місцевих річках","Зникнення вологолюбних рослин і птахів","Погіршення мікроклімату (частіші пилові бурі та посухи)","Зростання площей льодовиків"],
+    correctSet:[0,2,3],
+    fb:{c:{icon:"🎯",st:"ПРАВИЛЬНО",msg:"Прогноз трансформації точний!",fact:"Втручання людини руйнує <strong>цілісність комплексу</strong>. Знищення лісів і боліт призводить до катастрофічного падіння рівня води, зміни клімату та втрати біорізноманіття."},w:{icon:"❌",st:"ПОМИЛКА",msg:"Визнач лише логічні негативні наслідки.",fact:"Правильні відповіді: <strong>Зниження вод, зникнення флори/фауни, погіршення мікроклімату (1, 3, 4)</strong>. Риби не побільшає без води, а льодовики тут ні до чого."}}
+  }
+];
 
-                    ambientAudioNodes.push({ osc, lfo, gain });
-                });
-            } catch(e){}
-        }
+let S={
+  name:'',cls:'',cur:0,
+  scores:{GR1:[],GR2:[],GR3:[]},
+  selfEval:'',deviceToken:'',
+  multiSelected:new Set(),matchState:{},matchSelected:null,sortOrder:[]
+};
 
-        function stopAmbientSound() {
-            ambientAudioNodes.forEach(node => {
-                try {
-                    node.gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 2.0); // Дуже плавно тушимо звук
-                    setTimeout(() => {
-                        node.osc.stop();
-                        node.lfo.stop();
-                    }, 2000);
-                } catch(e){}
-            });
-            ambientAudioNodes = [];
-        }
+document.addEventListener('DOMContentLoaded', () => {
+  if(!localStorage.getItem('geo_dev_token')) {
+    localStorage.setItem('geo_dev_token','dev_'+Math.random().toString(36).substr(2,9));
+  }
+  S.deviceToken=localStorage.getItem('geo_dev_token');
+  if(localStorage.getItem('geo_obolonka_submitted')==='true') showSc('sc-lock');
 
-        // --- ВСІ 10 РІВНІВ ТВАРИНОК ---
-        const levels = [
-            { character: "🦖", happyEmoji: "😋", wrongEmoji: "🙅‍♂️", items: [{ emoji: "🌿", edible: true }, { emoji: "🥩", edible: true }, { emoji: "🍎", edible: true }, { emoji: "🍌", edible: true }, { emoji: "👟", edible: false }] },
-            { character: "🐱", happyEmoji: "😻", wrongEmoji: "🙀", items: [{ emoji: "🐟", edible: true }, { emoji: "🥛", edible: true }, { emoji: "🐭", edible: true }, { emoji: "🥩", edible: true }, { emoji: "🎈", edible: false }] },
-            { character: "🐶", happyEmoji: "🐕", wrongEmoji: "😾", items: [{ emoji: "🍖", edible: true }, { emoji: "🥩", edible: true }, { emoji: "🧀", edible: true }, { emoji: "🦴", edible: true }, { emoji: "🧦", edible: false }] },
-            { character: "🐵", happyEmoji: "🐒", wrongEmoji: "🙈", items: [{ emoji: "🍌", edible: true }, { emoji: "🍍", edible: true }, { emoji: "🥥", edible: true }, { emoji: "🍎", edible: true }, { emoji: "🔋", edible: false }] },
-            { character: "🐭", happyEmoji: "🐹", wrongEmoji: "🐁", items: [{ emoji: "🧀", edible: true }, { emoji: "🌾", edible: true }, { emoji: "🥜", edible: true }, { emoji: "🌽", edible: true }, { emoji: "🧱", edible: false }] },
-            { character: "🐸", happyEmoji: "🐸", wrongEmoji: "😝", items: [{ emoji: "🪰", edible: true }, { emoji: "🦟", edible: true }, { emoji: "🐛", edible: true }, { emoji: "🪲", edible: true }, { emoji: "🪙", edible: false }] },
-            { character: "🐝", happyEmoji: "🌻", wrongEmoji: "🥴", items: [{ emoji: "🌸", edible: true }, { emoji: "🌹", edible: true }, { emoji: "🌷", edible: true }, { emoji: "🍯", edible: true }, { emoji: "🧼", edible: false }] },
-            { character: "🐰", happyEmoji: "🐇", wrongEmoji: "🐇", items: [{ emoji: "🥕", edible: true }, { emoji: "🥬", edible: true }, { emoji: "🍏", edible: true }, { emoji: "🍓", edible: true }, { emoji: "🔑", edible: false }] },
-            { character: "🐻", happyEmoji: "🐻", wrongEmoji: "🐻", items: [{ emoji: "🍯", edible: true }, { emoji: "🐟", edible: true }, { emoji: "🍒", edible: true }, { emoji: "🍇", edible: true }, { emoji: "🪓", edible: false }] },
-            { character: "🐷", happyEmoji: "🐖", wrongEmoji: "🐽", items: [{ emoji: "🍎", edible: true }, { emoji: "🌽", edible: true }, { emoji: "🍉", edible: true }, { emoji: "🥔", edible: true }, { emoji: "👟", edible: false }] }
-        ];
-        
-        let currentLevel = 0;
-        let currentScale = 1.0;
+  document.getElementById('sel-class').addEventListener('change', loadNames);
+  document.getElementById('btn-start-mission').addEventListener('click', startGame);
+  document.getElementById('btn-accept-mission').addEventListener('click', startMission);
+  document.getElementById('btn-submit-report').addEventListener('click', submitData);
+  
+  // Кнопки скидання для повторного проходження (тренування)
+  document.getElementById('btn-restart').addEventListener('click', resetAndGoToLogin);
+  document.getElementById('btn-lock-retry').addEventListener('click', resetAndGoToLogin);
+  
+  document.querySelectorAll('.eval-opt').forEach(opt => {
+    opt.addEventListener('click', function() {
+      document.querySelectorAll('.eval-opt').forEach(o=>o.classList.remove('sel'));
+      this.classList.add('sel');
+      S.selfEval = this.dataset.value;
+    });
+  });
+});
 
-        // --- ФІЗИКА СІТКИ ---
-        const canvas = document.getElementById('clothCanvas'); const ctx = canvas.getContext('2d');
-        let points = [], links = [], mouse = { x:0, y:0, px:0, py:0, down:false }, cutCount = 0, passed = false;
-        function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-        window.addEventListener('resize', resizeCanvas);
-        
-        class Point {
-            constructor(x, y) { this.x = x; this.y = y; this.oldx = x; this.oldy = y; this.pinned = false; }
-            update() { if (this.pinned) return; let vx = (this.x - this.oldx) * 0.98, vy = (this.y - this.oldy) * 0.98; this.oldx = this.x; this.oldy = this.y; this.x += vx; this.y += vy + 0.15; }
-        }
-        class Link {
-            constructor(p1, p2, len) { this.p1 = p1; this.p2 = p2; this.length = len; this.broken = false; }
-            resolve() { if (this.broken) return; let dx = this.p2.x - this.p1.x, dy = this.p2.y - this.p1.y, dist = Math.sqrt(dx*dx + dy*dy), diff = this.length - dist, percent = (diff / dist) * 0.5; if (!this.p1.pinned) { this.p1.x -= dx * percent; this.p1.y -= dy * percent; } if (!this.p2.pinned) { this.p2.x += dx * percent; this.p2.y += dy * percent; } }
-        }
-        
-        function initPhysics() {
-            resizeCanvas(); points = []; links = []; cutCount = 0; passed = false;
-            const spacing = 30; const cols = Math.floor(canvas.width / spacing) - 2, rows = 14; const startX = (canvas.width - cols * spacing) / 2, startY = 80;
-            for (let y = 0; y <= rows; y++) { for (let x = 0; x <= cols; x++) { let p = new Point(startX + x * spacing, startY + y * spacing); if (y === 0) p.pinned = true; points.push(p); } }
-            for (let y = 0; y <= rows; y++) { for (let x = 0; x <= cols; x++) { if (x < cols) links.push(new Link(points[y * (cols + 1) + x], points[y * (cols + 1) + x + 1], spacing)); if (y < rows) links.push(new Link(points[y * (cols + 1) + x], points[(y + 1) * (cols + 1) + x], spacing)); } }
-            animate();
-        }
-        
-        function checkIntersection(p1, p2, p3, p4) { let det = (p2.x - p1.x) * (p4.y - p3.y) - (p4.x - p3.x) * (p2.y - p1.y); if (det === 0) return false; let lambda = ((p4.y - p3.y) * (p4.x - p1.x) + (p3.x - p4.x) * (p4.y - p1.y)) / det, gamma = ((p1.y - p2.y) * (p4.x - p1.x) + (p2.x - p1.x) * (p4.y - p1.y)) / det; return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1); }
-        
-        function animate() {
-            if (passed) return; ctx.clearRect(0, 0, canvas.width, canvas.height); points.forEach(p => p.update()); let slashed = false;
-            for (let i = 0; i < 5; i++) { links.forEach(l => { if (!l.broken) { l.resolve(); if (mouse.down && checkIntersection(l.p1, l.p2, {x: mouse.px, y: mouse.py}, {x: mouse.x, y: mouse.y})) { l.broken = true; cutCount++; slashed = true; } } }); }
-            if (slashed) soundSlice();
-            ctx.beginPath(); ctx.strokeStyle = '#ff5e97'; ctx.lineWidth = 3; links.forEach(l => { if (!l.broken) { ctx.moveTo(l.p1.x, l.p1.y); ctx.lineTo(l.p2.x, l.p2.y); } }); ctx.stroke();
-            mouse.px = mouse.x; mouse.py = mouse.y;
-            if (cutCount > 50) { passed = true; setTimeout(showGame, 300); } else { requestAnimationFrame(animate); }
-        }
-        
-        function handleMove(e) { let clientX = e.touches ? e.touches[0].clientX : e.clientX, clientY = e.touches ? e.touches[0].clientY : e.clientY; mouse.x = clientX; mouse.y = clientY; }
-        window.addEventListener('mousedown', (e) => { audioCtx.resume(); mouse.down = true; handleMove(e); mouse.px = mouse.x; mouse.py = mouse.y; });
-        window.addEventListener('mousemove', handleMove); window.addEventListener('mouseup', () => mouse.down = false);
-        window.addEventListener('touchstart', (e) => { audioCtx.resume(); mouse.down = true; handleMove(e); mouse.px = mouse.x; mouse.py = mouse.y; });
-        window.addEventListener('touchmove', handleMove); window.addEventListener('touchend', () => mouse.down = false);
-        
-        initPhysics();
+function showSc(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
 
-        function showGame() {
-            document.getElementById('canvas-container').style.display = 'none';
-            document.getElementById('game-screen').classList.add('active');
-            loadLevel();
-            startGameplayTimer(); 
-        }
+function loadNames(){
+  const c=document.getElementById('sel-class').value;
+  const s=document.getElementById('sel-name');
+  s.innerHTML='<option value="">— Знайди себе —</option>';
+  if(c&&DB[c]) {
+    DB[c].forEach(n=>{
+      const o=document.createElement('option');
+      o.value=o.text=n;
+      s.appendChild(o);
+    });
+  }
+}
 
-        // --- КЕРУВАННЯ ТАЙМЕРАМИ ГРИ ---
-        function startGameplayTimer() {
-            clearTimeout(gameTimer);
-            gameTimer = setTimeout(triggerAmbientRelax, GAME_PLAY_TIME);
-        }
+function startGame(){
+  const c=document.getElementById('sel-class').value;
+  const n=document.getElementById('sel-name').value;
+  if(!c||!n){alert('⚠ Оберіть клас і знайдіть своє прізвище!');return;}
+  S.cls=c;S.name=n;
+  document.getElementById('hdr-status').textContent=c;
+  showSc('sc-brief');
+}
 
-        // --- АКТИВАЦІЯ М'ЯКОГО РЕЛАКСУ ---
-        function triggerAmbientRelax() {
-            const ambScreen = document.getElementById('ambient-screen');
-            ambScreen.classList.add('active');
-            
-            startAmbientSound();
-            initAmbientSandSimulation();
+function startMission(){S.cur=0;renderQ();showSc('sc-game');}
 
-            setTimeout(() => {
-                stopAmbientSound();
-                cancelAnimationFrame(ambientAnimationId);
-                ambScreen.classList.remove('active');
-                startGameplayTimer(); 
-            }, RELAX_TIME);
-        }
+function resetAndGoToLogin(){
+  localStorage.removeItem('geo_obolonka_submitted');
+  S.cur=0;
+  S.scores={GR1:[],GR2:[],GR3:[]};
+  S.selfEval='';
+  document.querySelectorAll('.eval-opt').forEach(o=>o.classList.remove('sel'));
+  document.getElementById('ring-fill').style.strokeDashoffset=326;
+  document.getElementById('sent-ok').style.display='none';
+  
+  // Повертаємо селектори у базовий стан
+  document.getElementById('sel-class').value='';
+  document.getElementById('sel-name').innerHTML='<option value="">— Спочатку оберіть клас —</option>';
+  document.getElementById('hdr-status').textContent='СЕКТОР 8';
+  
+  showSc('sc-login');
+}
 
-        // Плавна пастельна анімація (М'який пісок без мерехтіння)
-        function initAmbientSandSimulation() {
-            const ambCanvas = document.getElementById('ambient-canvas');
-            const ambCtx = ambCanvas.getContext('2d');
-            
-            ambCanvas.width = window.innerWidth;
-            ambCanvas.height = window.innerHeight;
+function renderQ(){
+  const q=CASES[S.cur];
+  document.getElementById('case-num').textContent=S.cur+1;
+  document.getElementById('prog-fill').style.width=(S.cur/12*100)+'%';
+  const scored=S.scores.GR1.filter(v=>v).length+S.scores.GR2.filter(v=>v).length+S.scores.GR3.filter(v=>v).length;
+  document.getElementById('hud-score').textContent=scored+' ОЧОК';
+  const grEl=document.getElementById('hud-gr');
+  grEl.textContent=q.gr.replace('GR','ГР ');
+  grEl.className='hud-gr '+(q.gr==='GR1'?'gr1':q.gr==='GR2'?'gr2':'gr3');
 
-            let grains = [];
-            // Пастельні, приємні для очей малюка кольори (блакитний, лавандовий, рожевий, м'ята)
-            const colors = ['#7cd1e0', '#a78bfa', '#f472b6', '#34d399', '#60a5fa'];
-            let floorY = ambCanvas.height;
+  const area=document.getElementById('q-area');
+  area.innerHTML = '';
+  
+  S.multiSelected=new Set();
+  S.matchState={};S.matchSelected=null;
+  S.sortOrder=[];
 
-            function drawSand() {
-                // Чистий колір тла з мінімальним нашаруванням для плавного ходу піщинок
-                ambCtx.fillStyle = 'rgba(9, 9, 17, 0.12)';
-                ambCtx.fillRect(0, 0, ambCanvas.width, ambCanvas.height);
+  if(q.type==='choice') renderChoice(q, area);
+  else if(q.type==='multichoice') renderMulti(q, area);
+  else if(q.type==='match') renderMatch(q, area);
+  else if(q.type==='sort') renderSort(q, area);
+}
 
-                if (floorY > ambCanvas.height * 0.25) {
-                    floorY -= 0.18; // Плавне підняття нижнього рівня
-                }
+function createQCard(q) {
+  const card = document.createElement('div');
+  card.className = 'q-card';
+  card.innerHTML = `<div class="q-tag">${q.tag}</div><div class="q-text"></div><div class="q-hint"></div>`;
+  card.querySelector('.q-text').textContent = q.text;
+  card.querySelector('.q-hint').textContent = q.hint;
+  return card;
+}
 
-                // Генеруємо піщинки з невеликою інтенсивністю, щоб не рябіло в очах
-                if (grains.length < 350) {
-                    for(let i = 0; i < 2; i++) {
-                        grains.push({
-                            x: ambCanvas.width / 2 + (Math.random() * 20 - 10),
-                            y: 0,
-                            vx: Math.random() * 1.2 - 0.6,
-                            vy: 2.2 + Math.random() * 2.5, // Повільне, спокійне падіння
-                            radius: 4 + Math.random() * 4,
-                            color: colors[Math.floor(Math.random() * colors.length)]
-                        });
-                    }
-                }
+function renderChoice(q, area){
+  area.appendChild(createQCard(q));
+  const grid = document.createElement('div');
+  grid.className = 'opts-grid';
+  q.opts.forEach((o,i)=>{
+    const b = document.createElement('button');
+    b.className = 'opt';
+    b.textContent = o;
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.opt').forEach(btn=>btn.disabled=true);
+      const correct=(i===q.correct);
+      b.classList.add(correct?'correct':'wrong');
+      if(!correct) document.querySelectorAll('.opt')[q.correct].classList.add('reveal');
+      recordAndFeedback(correct,q);
+    });
+    grid.appendChild(b);
+  });
+  area.appendChild(grid);
+}
 
-                for (let i = grains.length - 1; i >= 0; i--) {
-                    let g = grains[i];
-                    g.y += g.vy;
-                    g.x += g.vx;
+function renderMulti(q, area){
+  area.appendChild(createQCard(q));
+  const hint = document.createElement('div');
+  hint.className = 'multi-hint';
+  hint.textContent = 'Обери всі правильні варіанти, потім натисни «Підтвердити»';
+  area.appendChild(hint);
 
-                    ambCtx.beginPath();
-                    ambCtx.arc(g.x, g.y, g.radius, 0, Math.PI * 2);
-                    ambCtx.fillStyle = g.color;
-                    ambCtx.shadowBlur = 0; // ПОВНІСТЮ прибрано важкі миготливі тіні
-                    ambCtx.fill();
+  const grid = document.createElement('div');
+  grid.className = 'opts-grid';
+  q.opts.forEach((o,i)=>{
+    const b = document.createElement('button');
+    b.className = 'opt';
+    b.textContent = o;
+    b.addEventListener('click', () => {
+      if(S.multiSelected.has(i)){S.multiSelected.delete(i);b.classList.remove('selected');}
+      else{S.multiSelected.add(i);b.classList.add('selected');}
+    });
+    grid.appendChild(b);
+  });
+  area.appendChild(grid);
 
-                    if (g.y >= floorY - g.radius) {
-                        grains.splice(i, 1);
-                    }
-                }
+  const conf = document.createElement('button');
+  conf.className = 'btn-confirm';
+  conf.textContent = 'ПІДТВЕРДИТИ ВИБІР ✓';
+  conf.addEventListener('click', () => {
+    const sel=[...S.multiSelected].sort();
+    const cor=[...q.correctSet].sort();
+    const correct=JSON.stringify(sel)===JSON.stringify(cor);
+    document.querySelectorAll('.opt').forEach(b=>b.disabled=true);
+    conf.disabled=true;
+    document.querySelectorAll('.opt').forEach((b,idx)=>{
+      if(q.correctSet.includes(idx)) b.classList.add('reveal');
+      else if(S.multiSelected.has(idx)) b.classList.add('wrong');
+    });
+    recordAndFeedback(correct,q);
+  });
+  area.appendChild(conf);
+}
 
-                // Малюємо спокійну основу
-                ambCtx.fillStyle = '#16162a';
-                ambCtx.fillRect(0, floorY, ambCanvas.width, ambCanvas.height - floorY);
+function renderMatch(q, area){
+  area.appendChild(createQCard(q));
+  const dArea = document.createElement('div');
+  dArea.className = 'drag-area';
+  
+  q.pairs.forEach((p,i)=>{
+    const row = document.createElement('div');
+    row.className = 'drag-row';
+    row.innerHTML = `<div class="drag-label"></div><div class="drag-arrow">→</div><div class="drag-slot" id="slot-${i}">?</div>`;
+    row.querySelector('.drag-label').textContent = p.label;
+    row.querySelector('.drag-slot').addEventListener('click', () => placeChip(i, q));
+    dArea.appendChild(row);
+  });
+  area.appendChild(dArea);
 
-                // Ніжний градієнт поверх дна (Ефект підводного свічення)
-                let grad = ambCtx.createLinearGradient(0, floorY, 0, ambCanvas.height);
-                grad.addColorStop(0, '#a78bfa');
-                grad.addColorStop(0.6, '#7cd1e0');
-                grad.addColorStop(1, '#090911');
-                ambCtx.fillStyle = grad;
-                ambCtx.globalAlpha = 0.25; // Дуже прозоро і м'яко
-                ambCtx.fillRect(0, floorY, ambCanvas.width, ambCanvas.height - floorY);
-                ambCtx.globalAlpha = 1.0;
+  const info = document.createElement('div');
+  info.style.cssText = "font-size:12px;color:var(--amber);font-family:var(--font-mono);margin-bottom:8px";
+  info.textContent = "① Натисни картку → ② Натисни клітинку";
+  area.appendChild(info);
 
-                ambientAnimationId = requestAnimationFrame(drawSand);
-            }
-            drawSand();
-        }
+  const pool = document.createElement('div');
+  pool.className = 'chips-pool';
+  q.chips.forEach((c,i)=>{
+    const chip = document.createElement('div');
+    chip.className = 'chip';
+    chip.id = `chip-${i}`;
+    chip.textContent = c;
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.chip').forEach(ch=>ch.classList.remove('chip-selected'));
+      S.matchSelected = {i, val:c};
+      chip.classList.add('chip-selected');
+    });
+    pool.appendChild(chip);
+  });
+  area.appendChild(pool);
 
-        // --- КЕРУВАННЯ ГОДУВАННЯМ ---
-        function loadLevel() {
-            const lvl = levels[currentLevel];
-            const animalDiv = document.getElementById('animal');
-            const container = document.getElementById('foodContainer');
-            
-            document.getElementById('next-btn').style.display = 'none';
+  const conf = document.createElement('button');
+  conf.className = 'btn-confirm';
+  conf.textContent = 'ПІДТВЕРДИТИ ✓';
+  conf.addEventListener('click', () => {
+    let correct=true;
+    q.pairs.forEach((p,i)=>{if(S.matchState[i]!==p.answer) correct=false;});
+    q.pairs.forEach((p,i)=>{
+      const sl=document.getElementById('slot-'+i);
+      if(S.matchState[i]===p.answer) sl.classList.add('correct-slot');
+      else{sl.classList.add('wrong-slot');sl.textContent=(S.matchState[i]||'—')+' ✗';}
+    });
+    conf.disabled=true;
+    document.querySelectorAll('.chip').forEach(c=>{c.style.pointerEvents='none';});
+    recordAndFeedback(correct,q);
+  });
+  area.appendChild(conf);
+}
 
-            currentScale = 1.0;
-            animalDiv.innerText = lvl.character;
-            animalDiv.style.transform = `scale(${currentScale})`;
-            container.style.display = 'flex';
-            container.innerHTML = '';
+function placeChip(slotIdx, q){
+  if(!S.matchSelected) return;
+  const {val}=S.matchSelected;
+  Object.keys(S.matchState).forEach(k=>{if(S.matchState[k]===val) delete S.matchState[k];});
+  S.matchState[slotIdx]=val;
+  Object.keys(S.matchState).forEach(k=>{
+    const sl=document.getElementById('slot-'+k);
+    if(sl){sl.textContent=S.matchState[k];sl.classList.add('filled');}
+  });
+  for(let k=0;k<q.pairs.length;k++){
+    if(!S.matchState[k]){const sl=document.getElementById('slot-'+k);sl.textContent='?';sl.classList.remove('filled');}
+  }
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('chip-selected','chip-used'));
+  Object.values(S.matchState).forEach(v=>{
+    q.chips.forEach((c,ci)=>{
+      if(c===v) document.getElementById('chip-'+ci).classList.add('chip-used');
+    });
+  });
+  S.matchSelected=null;
+}
 
-            lvl.items.forEach((item, index) => {
-                const foodHtml = `<div class="food-item" id="food-${index}" data-edible="${item.edible}">${item.emoji}</div>`;
-                container.insertAdjacentHTML('beforeend', foodHtml);
-            });
+function renderSort(q, area){
+  area.appendChild(createQCard(q));
+  const inst = document.createElement('div');
+  inst.className = 'sort-instruction';
+  inst.textContent = 'Натискай по одному у потрібному порядку (1→6)';
+  area.appendChild(inst);
 
-            initDragAndDrop();
-        }
+  const list = document.createElement('div');
+  list.className = 'sort-list';
+  q.items.forEach((item,i)=>{
+    const row = document.createElement('div');
+    row.className = 'sort-item';
+    row.id = `si-${i}`;
+    row.innerHTML = `<span></span><span class="sort-rank" id="sr-${i}"></span>`;
+    row.querySelector('span').textContent = item;
+    row.addEventListener('click', () => {
+      if(S.sortOrder.includes(i)) return;
+      S.sortOrder.push(i);
+      row.classList.add('sort-selected');
+      const sr=document.getElementById('sr-'+i);
+      sr.textContent='#'+S.sortOrder.length;
+      sr.classList.add('filled');
+    });
+    list.appendChild(row);
+  });
+  area.appendChild(list);
 
-        function initDragAndDrop() {
-            const foodItems = document.querySelectorAll('.food-item');
-            const animalDiv = document.getElementById('animal');
-            const mouthTarget = document.getElementById('mouthTarget');
-            const lvl = levels[currentLevel];
+  const conf = document.createElement('button');
+  conf.className = 'btn-confirm';
+  conf.textContent = 'ПІДТВЕРДИТИ ✓';
+  conf.addEventListener('click', () => {
+    const correct=JSON.stringify(S.sortOrder)===JSON.stringify(q.correctOrder);
+    q.items.forEach((_,i)=>{
+      const el=document.getElementById('si-'+i);
+      if(S.sortOrder.indexOf(i)===q.correctOrder.indexOf(i)) el.classList.add('sort-correct');
+      else el.classList.add('sort-wrong');
+    });
+    conf.disabled=true;
+    document.querySelectorAll('.sort-item').forEach(s=>{s.style.pointerEvents='none';});
+    recordAndFeedback(correct,q);
+  });
+  area.appendChild(conf);
+}
 
-            foodItems.forEach(item => {
-                let startX = 0, startY = 0, currentX = 0, currentY = 0;
-                const isEdible = item.getAttribute('data-edible') === 'true';
+function recordAndFeedback(correct,q){
+  S.scores[q.gr].push(correct?1:0);
+  if(correct) spawnParticles();
+  const fb=correct?q.fb.c:q.fb.w;
+  const overlay=document.getElementById('fb-overlay');
+  document.getElementById('fb-icon').textContent=fb.icon;
+  document.getElementById('fb-status').textContent=fb.st;
+  document.getElementById('fb-status').style.color=correct?'var(--green)':'var(--red)';
+  document.getElementById('fb-msg').textContent=fb.msg;
+  document.getElementById('fb-fact').innerHTML=fb.fact;
+  document.getElementById('fb-btn').onclick=()=>{
+    overlay.style.display='none';
+    S.cur++;
+    if(S.cur<12) renderQ();
+    else showSc('sc-eval');
+  };
+  overlay.style.display='flex';
+}
 
-                item.addEventListener('touchstart', dragStart);
-                item.addEventListener('mousedown', dragStart);
+function submitData(){
+  if(!S.selfEval){alert('Будь ласка, оціни свій рівень.');return;}
+  
+  const gr1pct=Math.round(avg(S.scores.GR1)*100);
+  const gr2pct=Math.round(avg(S.scores.GR2)*100);
+  const gr3pct=Math.round(avg(S.scores.GR3)*100);
+  const totalPct=Math.round((gr1pct+gr2pct+gr3pct)/3);
+  
+  const gapMap={
+    GR1:[
+      {s:S.scores.GR1[0],g:"ГР1_Поняття_географічної_оболонки"},
+      {s:S.scores.GR1[1],g:"ГР1_Цілісність_ГО"},
+      {s:S.scores.GR1[2],g:"ГР1_Закономірності_ГО"},
+      {s:S.scores.GR1[3],g:"ГР1_Компоненти_ПК"},
+      {s:S.scores.GR1[4],g:"ГР1_Зміна_ПК"}
+    ],
+    GR2:[
+      {s:S.scores.GR2[0],g:"ГР2_Причина_зональності"},
+      {s:S.scores.GR2[1],g:"ГР2_Аналіз_карти_зон"},
+      {s:S.scores.GR2[2],g:"ГР2_Читання_карти_зон"},
+      {s:S.scores.GR2[3],g:"ГР2_Порушення_зональності"}
+    ],
+    GR3:[
+      {s:S.scores.GR3[0],g:"ГР3_Висотна_поясність"},
+      {s:S.scores.GR3[1],g:"ГР3_Залежність_висотної_поясності"},
+      {s:S.scores.GR3[2],g:"ГР3_Трансформація_комплексів"}
+    ]
+  };
+  const gaps=[];
+  [...gapMap.GR1,...gapMap.GR2,...gapMap.GR3].forEach(e=>{if(!e.s) gaps.push(e.g);});
+  
+  const payload={
+    studentName:S.name,studentClass:S.cls,
+    totalScore:totalPct,
+    scoreGR1:gr1pct,scoreGR2:gr2pct,scoreGR3:gr3pct,
+    gaps,selfEvaluation:S.selfEval,deviceToken:S.deviceToken,
+    topic:'obolonka'
+  };
+  
+  showSc('sc-result');
+  buildResult(payload,gr1pct,gr2pct,gr3pct,totalPct,gaps);
+  
+  document.getElementById('loader').style.display='flex';
+  
+  fetch(SCRIPT_URL,{method:'POST',mode:'cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)})
+    .then(r=>r.json())
+    .then(d=>{
+      document.getElementById('loader').style.display='none';
+      const n=document.getElementById('sent-ok');
+      if (d.result === 'already_exists') {
+        n.style.borderColor = 'var(--purple)';
+        n.innerHTML = '<div style="color:var(--purple); text-align:center;">🔮 РЕЖИМ ТРЕНУВАННЯ<br><span style="font-size:12px; color:var(--muted)">Результати оновлено локально. Офіційний перший звіт збережено раніше.</span></div>';
+        n.style.display = 'block';
+      } else {
+        n.style.display = 'block';
+        localStorage.setItem('geo_obolonka_submitted','true');
+      }
+    })
+    .catch(()=>{
+      document.getElementById('loader').style.display='none';
+      document.getElementById('sent-ok').style.display='block';
+    });
+}
 
-                function dragStart(e) {
-                    soundDrag();
-                    let clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                    let clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                    startX = clientX - currentX; startY = clientY - currentY;
-                    document.addEventListener('touchmove', dragMove, { passive: false });
-                    document.addEventListener('mousemove', dragMove);
-                    document.addEventListener('touchend', dragEnd);
-                    document.addEventListener('mouseup', dragEnd);
-                }
+function avg(arr){return arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:0;}
 
-                function dragMove(e) {
-                    e.preventDefault();
-                    let clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                    let clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                    currentX = clientX - startX; currentY = clientY - startY;
-                    item.style.transform = `translate(${currentX}px, ${currentY}px) scale(1.15)`;
-                }
+function buildResult(p,gr1,gr2,gr3,total,gaps){
+  const titles={high:'АНАЛІЗ ОБОЛОНКИ ЗАВЕРШЕНО',mid:'СТАЖУВАННЯ АГЕНТА ТРИВАЄ',low:'СПРАВА НА ДОВИВЧЕННІ'};
+  document.getElementById('res-title').textContent=total>=75?titles.high:total>=50?titles.mid:titles.low;
+  document.getElementById('res-name').textContent=p.studentName+' • '+p.studentClass;
+  
+  const clr=(v)=>v>=75?'var(--green)':v>=50?'var(--amber)':'var(--red)';
+  document.getElementById('s-gr1').textContent=gr1+'%';document.getElementById('s-gr1').style.color=clr(gr1);
+  document.getElementById('s-gr2').textContent=gr2+'%';document.getElementById('s-gr2').style.color=clr(gr2);
+  document.getElementById('s-gr3').textContent=gr3+'%';document.getElementById('s-gr3').style.color=clr(gr3);
+  
+  if(gaps.length){
+    const gapLabels={
+      "ГР1_Поняття_географічної_оболонки":"Поняття та межі географічної оболонки",
+      "ГР1_Цілісність_ГО":"Закономірність цілісності географічної оболонки",
+      "ГР1_Закономірності_ГО":"Ритмічність, цілісність, зональність та кругообіг",
+      "ГР1_Компоненти_ПК":"Складові компоненти природного комплексу (ландшафту)",
+      "ГР1_Зміна_ПК":"Локальні та глобальні природні комплекси",
+      "ГР2_Причина_зональності":"Причини формування природних зон (тепло і волога)",
+      "ГР2_Аналіз_карти_зон":"Аналіз дзеркальної широтної зональності на картах",
+      "ГР2_Читання_карти_зон":"Просторова послідовність природних зон Землі",
+      "ГР2_Порушення_зональності":"Причини відхилення меж природних зон (течії, рельєф)",
+      "ГР3_Висотна_поясність":"Прояв висотної (вертикальної) поясності в горах",
+      "ГР3_Залежність_висотної_поясності":"Фактори кількості висотних поясів (висота і широта)",
+      "ГР3_Трансформація_комплексів":"Наслідки втручання людини в природні комплекси"
+    };
+    const items=gaps.map(g=>`<div class="gap-item">⚠ ${gapLabels[g]||g}</div>`).join('');
+    document.getElementById('gaps-section').innerHTML=`<div class="gaps-box"><div class="gaps-title">ТЕМИ ДЛЯ ПОВТОРЕННЯ</div>${items}</div>`;
+  } else {
+    document.getElementById('gaps-section').innerHTML = '';
+  }
+  
+  const subs={high:"Відмінний результат! Ти — провідний дослідник Географічного Відомства.",mid:"Гарна робота! Повтори відмічені прогалини про закономірності оболонки і результат покращиться.",low:"Потрібно відкрити атлас і повторити закономірності зміни природних зон. Спробуй ще!"};
+  document.getElementById('res-sub').textContent=total>=75?subs.high:total>=50?subs.mid:subs.low;
+  
+  setTimeout(()=>{
+    const circ=326;
+    document.getElementById('ring-fill').style.strokeDashoffset=circ-(circ*total/100);
+    document.getElementById('ring-pct').textContent=total+'%';
+    document.getElementById('ring-fill').style.stroke=clr(total);
+  },200);
+}
 
-                function dragEnd() {
-                    document.removeEventListener('touchmove', dragMove);
-                    document.removeEventListener('mousemove', dragMove);
-                    document.removeEventListener('touchend', dragEnd);
-                    document.removeEventListener('mouseup', dragEnd);
-
-                    const itemRect = item.getBoundingClientRect();
-                    const mouthRect = mouthTarget.getBoundingClientRect();
-                    const isOverMouth = !(itemRect.right < mouthRect.left || itemRect.left > mouthRect.right || 
-                                          itemRect.bottom < mouthRect.top || itemRect.top > mouthRect.bottom);
-
-                    if (isOverMouth) {
-                        if (isEdible) {
-                            soundYum();
-                            animalDiv.innerText = lvl.happyEmoji;
-                            animalDiv.classList.add('eating');
-                            item.style.display = 'none';
-                            currentScale += 0.15;
-
-                            setTimeout(() => {
-                                animalDiv.innerText = lvl.character;
-                                animalDiv.classList.remove('eating');
-                                animalDiv.style.transform = `scale(${currentScale})`;
-                                checkLevelProgress();
-                            }, 700);
-                        } else {
-                            soundWrong();
-                            animalDiv.innerText = lvl.wrongEmoji;
-                            animalDiv.classList.add('wrong');
-                            currentX = 0; currentY = 0;
-                            item.style.transform = `translate(0px, 0px)`;
-                            setTimeout(() => { animalDiv.innerText = lvl.character; animalDiv.classList.remove('wrong'); }, 800);
-                        }
-                    } else {
-                        currentX = 0; currentY = 0; item.style.transform = `translate(0px, 0px)`;
-                    }
-                }
-            });
-        }
-
-        function checkLevelProgress() {
-            const remainingEdible = Array.from(document.querySelectorAll('.food-item')).filter(i => i.style.display !== 'none' && i.getAttribute('data-edible') === 'true');
-            
-            if (remainingEdible.length === 0) {
-                soundWin();
-                document.getElementById('foodContainer').style.display = 'none';
-                
-                if (currentLevel < levels.length - 1) {
-                    document.getElementById('next-btn').style.display = 'block';
-                } else {
-                    const animalDiv = document.getElementById('animal');
-                    animalDiv.innerText = "🎉🦖🐱🐶🐵🎉"; 
-                    animalDiv.style.transform = "scale(1.0)";
-                    document.getElementById('finish-btn').style.display = 'block';
-                }
-            }
-        }
-
-        function goToNextLevel() {
-            soundLevelUp();
-            currentLevel++;
-            loadLevel();
-        }
-
-        function finalCelebration() {
-            document.getElementById('finish-btn').style.display = 'none';
-            document.getElementById('win-text').style.display = 'block';
-            document.getElementById('restart-btn').style.display = 'block';
-            
-            let count = 0;
-            let interval = setInterval(() => {
-                playTone(440 + Math.random() * 400, 'sine', 0.15);
-                count++;
-                if (count > 15) clearInterval(interval);
-            }, 120);
-        }
-
-        function resetGame() {
-            document.getElementById('restart-btn').style.display = 'none';
-            document.getElementById('win-text').style.display = 'none';
-            document.getElementById('game-screen').classList.remove('active');
-            currentLevel = 0;
-            document.getElementById('canvas-container').style.display = 'block';
-            initPhysics();
-        }
-    </script>
+function spawnParticles(){
+  const colors=['var(--cyan)','var(--green)','var(--amber)','var(--purple)'];
+  for(let i=0;i<16;i++){
+    const p=document.createElement('div');p.className='particle';
+    const sz=4+Math.random()*6,ang=Math.random()*Math.PI*2,dist=70+Math.random()*130;
+    p.style.cssText=`width:${sz}px;height:${sz}px;background:${colors[Math.floor(Math.random()*colors.length)]};left:${35+Math.random()*30}%;top:${25+Math.random()*50}%;--dx:${Math.cos(ang)*dist}px;--dy:${Math.sin(ang)*dist}px`;
+    document.body.appendChild(p);setTimeout(()=>p.remove(),800);
+  }
+}
+</script>
 </body>
 </html>
